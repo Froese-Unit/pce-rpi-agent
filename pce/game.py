@@ -169,7 +169,14 @@ class Game:
         self.experimenter_uuid = None
         self.phase: Optional[Phase] = None
 
-        if self.cliargs.test is None:
+        # if self.cliargs.test is None:
+        #     import RPi.GPIO as GPIO
+        #     GPIO.setmode(GPIO.BCM)
+        #     GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)#player 0 ground
+        #     GPIO.setup(9, GPIO.IN, pull_up_down=GPIO.PUD_UP)#player 0 voltage
+        #     GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)#player 1 ground
+        #     GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)#player 1 voltage
+        if self.cliargs.test is None and not self.cliargs.mockpins:
             import RPi.GPIO as GPIO
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)#player 0 ground
