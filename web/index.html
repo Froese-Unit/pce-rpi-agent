@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Loading</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script type="text/javascript" src="assets/elm.js"></script>
+    </head>
+    <body>
+        <div id="app"></div>
+    </body>
+    <script type="text/javascript">
+        var app = Elm.Main.init({
+            node: document.getElementById("app")
+        });
+
+        var socket;
+        app.ports.socketConnect.subscribe(url => {
+            socket = new WebSocket(url);
+            socket.addEventListener("open", event => app.ports.socketState.send(true));
+            socket.addEventListener("close", event => app.ports.socketState.send(false));
+            socket.addEventListener("error", event => app.ports.socketError.send(event.type));
+            socket.addEventListener("message", event => app.ports.messageReceiver.send(event.data));
+            app.ports.sendMessage.subscribe(message => socket.send(message));
+        });
+    </script>
+</html>

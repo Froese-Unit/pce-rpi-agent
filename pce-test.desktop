@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=PCE Test (60s trials, 3s resting)
+Exec=/bin/bash -c 'cd $HOME/pce-rpi; $HOME/.local/bin/pipenv run python -m pce.main --loglevel=debug --tui --test 60 test; echo; echo; read -p "This command has ended. Press Enter to close this window."'
+Terminal=true
+Type=Application

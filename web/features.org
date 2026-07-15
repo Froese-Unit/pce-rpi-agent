@@ -1,0 +1,16 @@
+* DONE Input for websocket address
+Pre-filled with pcepi IP, but lets you change
+* DONE Use elm-ui for layout
+* DONE Input participant IDs
+* DONE Global view
+** DONE Declared players' readiness
+** DONE Clicks
+* DONE Player 0/1 views (buttons with urls)
+** DONE Trial/resting states instructions
+** DONE Declared readiness
+* DONE Post-trial questionnaires in player view
+* Send websocket updates from clients to experimenter when questionnaires are being filled
+* Show trial number
+* Show time progress to experimenter
+* Show player views to experimenter
+* Match colours to player names

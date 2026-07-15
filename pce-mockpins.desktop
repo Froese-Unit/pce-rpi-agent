@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=PCE Mockpins
+Exec=/bin/bash -c 'cd $HOME/pce-rpi; $HOME/.local/bin/pipenv run python -m pce.main --mockpins --loglevel=debug --tui mockpins; echo; echo; read -p "This command has ended. Press Enter to close this window."'
+Terminal=true
+Type=Application

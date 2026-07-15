@@ -1,0 +1,4 @@
+data/
+# These are symlinks to the pipfiles relevant to the current machine
+Pipfile
+Pipfile.lock

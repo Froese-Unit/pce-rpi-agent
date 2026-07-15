@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+websockets = "==10.1"
+textual = "==0.1.12"
+# pandas = "==1.1.5" from system
+# scipy = "==1.6.0" from system
+# gpiozero = "==1.4.1" from system
+# pigpio = "==1.79" from system
+aiohttp = "==3.8.1"
+aiohttp-session = "==2.9.0"
+# cryptography = "==3.3.2" from system
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
