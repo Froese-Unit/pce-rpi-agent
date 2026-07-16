@@ -169,7 +169,7 @@ class Game:
         self.experimenter_uuid = None
         self.phase: Optional[Phase] = None
 
-        # if self.cliargs.test is None:
+        # if self.cliargs.test is None: # 20260715 AH edits (added and not self.cliargs.mockpins so the raw GPIO button-pin setup is skipped in mock mode.)
         #     import RPi.GPIO as GPIO
         #     GPIO.setmode(GPIO.BCM)
         #     GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)#player 0 ground

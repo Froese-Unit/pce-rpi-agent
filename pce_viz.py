@@ -1,14 +1,9 @@
 """
-Standalone PCE visualizer. Replays a trial CSV as an animation of the two
-avatars (+ their shadows and static objects) on the circular ring.
+PCE visualizer
 
 Usage:
     python pce_viz.py path/to/trial.csv
-    python pce_viz.py --demo          # generate & show a synthetic trial
-
-Reads the real PCE CSV columns: timestamp, pos0, pos1,
-static_object_0, static_object_1, shadow_delta0, shadow_delta1,
-motor_0_vibrate_software, motor_1_vibrate_software, button0, button1
+    python pce_viz.py path/to/trial.csv --speed 5
 """
 import sys
 import numpy as np
@@ -20,89 +15,97 @@ RING = 600
 AVATAR_W = 20
 
 def angle(x):
-    """Map ring position 0..599 to an angle in radians."""
     return 2 * np.pi * (np.asarray(x) % RING) / RING
 
-def make_demo_csv(path="demo_trial.csv", n=1500, hz=100):
-    """Synthetic trial so the visualizer can be tested before real data exists."""
-    t = np.linspace(0, n/hz, n)
-    pos0 = (np.cumsum(np.random.uniform(-4, 4, n))) % RING
-    pos1 = (300 + np.cumsum(np.random.uniform(-4, 4, n))) % RING
-    s0, s1 = 150, 450
-    def cdist(a, b):
-        d = np.abs(a - b) % RING
-        return np.minimum(d, RING - d)
-    m0 = ((cdist(pos0, pos1) <= AVATAR_W) |
-          (cdist(pos0, (pos1+150) % RING) <= AVATAR_W) |
-          (cdist(pos0, s0) <= AVATAR_W)).astype(int)
-    m1 = ((cdist(pos1, pos0) <= AVATAR_W) |
-          (cdist(pos1, (pos0+150) % RING) <= AVATAR_W) |
-          (cdist(pos1, s1) <= AVATAR_W)).astype(int)
-    pd.DataFrame({
-        "timestamp": t, "pos0": pos0, "pos1": pos1,
-        "static_object_0": s0, "static_object_1": s1,
-        "shadow_delta0": 150, "shadow_delta1": 150,
-        "motor_0_vibrate_software": m0, "motor_1_vibrate_software": m1,
-        "button0": 0, "button1": 0,
-    }).to_csv(path, index_label="index")
-    return path
+def xy(pos, r=1.0):
+    a = angle(pos)
+    return r*np.cos(a), r*np.sin(a)
 
-def visualize(csv_path, speed=3):
+def visualize(csv_path, speed=4, trail=40):
     df = pd.read_csv(csv_path)
     n = len(df)
-    fig, ax = plt.subplots(figsize=(7, 7), subplot_kw={"aspect": "equal"})
-    ax.set_xlim(-1.4, 1.4); ax.set_ylim(-1.4, 1.4); ax.axis("off")
-    # the ring
-    ring = plt.Circle((0, 0), 1.0, fill=False, color="lightgray", lw=2)
-    ax.add_patch(ring)
 
-    def xy(pos, r=1.0):
-        a = angle(pos)
-        return r*np.cos(a), r*np.sin(a)
+    # detect click ONSET events (0 -> 1 transitions), not held frames
+    b0 = df["button0"].to_numpy()
+    b1 = df["button1"].to_numpy()
+    onset0 = np.where((b0[1:] == 1) & (b0[:-1] == 0))[0] + 1
+    onset1 = np.where((b1[1:] == 1) & (b1[:-1] == 0))[0] + 1
+    print(f"Trial has {len(df)} rows, ~{df['timestamp'].iloc[-1]:.0f}s")
+    print(f"P0 clicked {len(onset0)} time(s); P1 clicked {len(onset1)} time(s)")
 
     sd0 = df["shadow_delta0"].iloc[0]
     sd1 = df["shadow_delta1"].iloc[0]
 
-    # static objects (fixed) -- squares
+    fig = plt.figure(figsize=(13, 7))
+    axR = fig.add_subplot(1, 2, 1, aspect="equal")   # the ring
+    axS = fig.add_subplot(1, 2, 2)                     # position-vs-time strip
+
+    # ---- ring panel ----
+    axR.set_xlim(-1.4, 1.4); axR.set_ylim(-1.4, 1.4); axR.axis("off")
+    axR.add_patch(plt.Circle((0, 0), 1.0, fill=False, color="lightgray", lw=2))
     sx0, sy0 = xy(df["static_object_0"].iloc[0])
     sx1, sy1 = xy(df["static_object_1"].iloc[0])
-    ax.scatter([sx0], [sy0], marker="s", s=180, c="tab:green", label="static 0", zorder=3)
-    ax.scatter([sx1], [sy1], marker="s", s=180, c="darkgreen", label="static 1", zorder=3)
+    axR.scatter([sx0],[sy0], marker="s", s=160, c="tab:green", zorder=3, label="static 0")
+    axR.scatter([sx1],[sy1], marker="s", s=160, c="darkgreen", zorder=3, label="static 1")
+    a0 = axR.scatter([], [], s=320, c="tab:blue", zorder=6, label="P0 (participant)")
+    a1 = axR.scatter([], [], s=320, c="tab:red",  zorder=6, label="P1 (partner)")
+    sh0 = axR.scatter([], [], s=110, c="tab:blue", alpha=0.3, zorder=4, label="shadow 0")
+    sh1 = axR.scatter([], [], s=110, c="tab:red",  alpha=0.3, zorder=4, label="shadow 1")
+    click_ring = axR.scatter([], [], s=1400, facecolors="none",
+                             edgecolors="black", linewidths=3, zorder=7)
+    title = axR.set_title("")
+    axR.legend(loc="upper right", fontsize=7, framealpha=0.9)
 
-    # dynamic artists
-    a0 = ax.scatter([], [], s=320, c="tab:blue", label="avatar 0 (participant)", zorder=5)
-    a1 = ax.scatter([], [], s=320, c="tab:red",  label="avatar 1 (agent/partner)", zorder=5)
-    sh0 = ax.scatter([], [], s=120, c="tab:blue", alpha=0.35, label="shadow 0", zorder=4)
-    sh1 = ax.scatter([], [], s=120, c="tab:red",  alpha=0.35, label="shadow 1", zorder=4)
-    title = ax.set_title("")
-    ax.legend(loc="upper right", fontsize=8, framealpha=0.9)
+    # ---- position-vs-time strip (whole trial, with a moving cursor) ----
+    t = df["timestamp"].to_numpy()
+    axS.plot(t, df["pos0"], color="tab:blue", lw=0.8, label="P0 pos")
+    axS.plot(t, df["pos1"], color="tab:red",  lw=0.8, label="P1 pos")
+    # mark clicks on the strip
+    for i in onset0:
+        axS.axvline(t[i], color="tab:blue", ls=":", alpha=0.6)
+    for i in onset1:
+        axS.axvline(t[i], color="tab:red", ls=":", alpha=0.6)
+    axS.set_xlabel("time (s)"); axS.set_ylabel("position (0-600)")
+    axS.set_title("positions over time (dotted = clicks)")
+    axS.legend(loc="upper right", fontsize=7)
+    cursor = axS.axvline(t[0], color="black", lw=1)
 
     def update(frame):
         i = min(frame*speed, n-1)
         row = df.iloc[i]
-        x0, y0 = xy(row["pos0"]); x1, y1 = xy(row["pos1"])
-        a0.set_offsets([[x0, y0]]); a1.set_offsets([[x1, y1]])
+        a0.set_offsets([list(xy(row["pos0"]))])
+        a1.set_offsets([list(xy(row["pos1"]))])
         sh0.set_offsets([list(xy((row["pos0"]+sd0) % RING))])
         sh1.set_offsets([list(xy((row["pos1"]+sd1) % RING))])
-        # grow the dot when its motor is firing (feeling contact)
         a0.set_sizes([700 if row["motor_0_vibrate_software"] else 320])
         a1.set_sizes([700 if row["motor_1_vibrate_software"] else 320])
-        title.set_text(f"t = {row['timestamp']:.1f}s   "
+
+        # flash a black ring on a click (show for a short window after onset)
+        recent_click = []
+        if any(abs(i - c) < 25 for c in onset0):
+            recent_click.append(list(xy(row["pos0"])))
+        if any(abs(i - c) < 25 for c in onset1):
+            recent_click.append(list(xy(row["pos1"])))
+        click_ring.set_offsets(recent_click if recent_click else np.empty((0,2)))
+
+        cursor.set_xdata([row["timestamp"], row["timestamp"]])
+        title.set_text(f"t={row['timestamp']:.1f}s  "
                        f"motor0={int(row['motor_0_vibrate_software'])} "
                        f"motor1={int(row['motor_1_vibrate_software'])}")
-        return a0, a1, sh0, sh1, title
+        return a0, a1, sh0, sh1, click_ring, cursor, title
 
     frames = n // speed + 1
     anim = FuncAnimation(fig, update, frames=frames, interval=20, blit=False)
+    plt.tight_layout()
     plt.show()
     return anim
 
 if __name__ == "__main__":
-    if "--demo" in sys.argv:
-        p = make_demo_csv()
-        print(f"wrote {p}; launching visualizer")
-        visualize(p)
-    elif len(sys.argv) > 1:
-        visualize(sys.argv[1])
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    speed = 4
+    if "--speed" in sys.argv:
+        speed = int(sys.argv[sys.argv.index("--speed")+1])
+    if args:
+        visualize(args[0], speed=speed)
     else:
-        print("usage: python pce_viz.py path/to/trial.csv   (or --demo)")
+        print("usage: python pce_viz2.py path/to/trial.csv [--speed N]")

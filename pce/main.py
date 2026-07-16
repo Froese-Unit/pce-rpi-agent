@@ -112,6 +112,7 @@ def main():
         check_output(["git", "rev-parse", "HEAD"]).strip().decode("ascii"),
     )
     logger.info("Web elm.js sha256 sum: %s", "skipped-dev-mode")
+    ## edits 20260715 AH (replaced the check_output(["sha256sum", ...]) call (which fails on macOS) with a placeholder.)
     #logger.info(
     #    "Web elm.js sha256 sum: %s",
     #    check_output(["sha256sum", os.path.join(st.WEBVIZ_PATH, "assets", "elm.js")])
