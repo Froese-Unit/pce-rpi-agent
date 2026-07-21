@@ -361,6 +361,15 @@ class Trial(Phase):
         trial_duration = st.GLOBAL["DURATION_SECS"]["trial"]
 
         def step(current_time, start_time):
+            # --- AGENT: drive the replay avatar once per tick ----------------
+            # This inner step() is the body of the trial loop; it runs every
+            # tick. For the replay agent we advance it to its recorded position
+            # for the current elapsed time BEFORE record()/update_feedbacks(),
+            # so the logged row and the haptic feedback reflect the agent's move
+            # on this same tick. agent_step() is a no-op for the live human.
+            elapsed = current_time - start_time      # seconds since trial start
+            for p in self.players:
+                p.agent_step(elapsed)                # AGENT: time-based replay
             self.record(current_time - start_time)
             self.update_feedbacks()
 
@@ -446,7 +455,7 @@ class Trial(Phase):
                 if p.index == 0:
                     st.MOTOR_EXCEL_0 = st.MOTOR_ON #Shows that motor is on
                 elif p.index == 1:
-                    st.MOTOR_EXCEL_1 = st.MOTOR_ON #Shows that motor is on           
+                    st.MOTOR_EXCEL_1 = st.MOTOR_ON #Shows that motor is on
             if not active and p.controller.feedback:
              #   self.box.signal.standby()
                 if p.index == 0:

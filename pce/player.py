@@ -3,6 +3,8 @@ from random import randint
 from typing import List, Optional
 from uuid import UUID
 
+import pandas as pd  # type: ignore  # AGENT
+
 from pce import server
 from pce import settings as st
 from pce.controller import Controller
@@ -13,6 +15,23 @@ class Player:
     def __init__(self, index: int, game) -> None:
         self.index = index
         self.game = game
+
+        # --- AGENT (Condition 1: non-contingent replay) --------------------
+        # If this player slot is the agent, it does NOT read a live rotary
+        # controller; instead it plays back a recorded 2023 participant's
+        # positions (see agent_step() below). Set this up BEFORE the
+        # init_nonmotion() call further down.
+        self.is_agent = (
+            st.AGENT_ENABLED and self.index == st.AGENT_PLAYER_INDEX
+        )
+        self.replay_positions = None    # AGENT: recorded positions (pos1) we play back
+        self.replay_timestamps = None   # AGENT: recorded time (s) of each position -> time-based lookup
+        self.replay_index = 0           # AGENT: how far through the recording we are (advances during a trial)
+        if self.is_agent:
+            df = pd.read_csv(st.AGENT_REPLAY_CSV)               # load the one recorded 2023 trial
+            self.replay_positions = df["pos1"].tolist()         # P1's avatar position at each recorded tick
+            self.replay_timestamps = df["timestamp"].tolist()   # seconds-from-trial-start for each recorded tick
+
         self.controller = Controller(
             index,
             game.box,
@@ -67,6 +86,30 @@ class Player:
             # TODO: type: separate cases functionally as would do in Elm
             self.rotary_dts.append(datetime.utcnow())  # type: ignore
 
+    # --- AGENT: move the replay avatar to its recorded position -------------
+    # Called once per TICK from phase.py -> Trial.step(). `elapsed` is the
+    # number of seconds since this trial started.
+    #
+    # WHY look up by TIME instead of by tick count: the live loop on this Mac
+    # runs faster (~838 Hz) than the 2023 recording (~566 Hz). If we advanced
+    # one recorded row per tick, we'd burn through the ~34k rows in ~40 s and
+    # then freeze on the last row for the final ~20 s of the trial. Looking up
+    # the recording by elapsed TIME plays it at its true speed and spans the
+    # whole ~60 s trial no matter how fast the live loop runs.
+    # (Fix is written; still to be verified end-to-end on a full trial.)
+    def agent_step(self, elapsed: float) -> None:
+        if not self.is_agent or self.avatar is None:
+            return  # no-op for the live human, and before the avatar exists
+        ts = self.replay_timestamps
+        # Walk the pointer forward while the NEXT recorded timestamp is still
+        # <= elapsed -> i.e. pick the latest recorded sample at/before "now".
+        # `elapsed` only increases within a trial, so this never scans backward.
+        while (self.replay_index + 1 < len(ts)
+               and ts[self.replay_index + 1] <= elapsed):
+            self.replay_index += 1
+        i = min(self.replay_index, len(self.replay_positions) - 1)  # clamp to last recorded row
+        self.avatar.x = self.replay_positions[i]  # place the agent avatar at that recorded position
+
     def _broadcast_events(self) -> None:
         if hasattr(self.game, "webapp"):
             server.ws_broadcast(
@@ -112,7 +155,7 @@ class Player:
             st.OBJ_LOCATION_ONE = st.OBJ_LOCATION_ZERO+300
             self.static = Object(
                 st.OBJ_LOCATION_ONE, st.STATIC_WIDTH) #MAKING OBJECTS AN ARRAY #Object(st.STATIC_X[self.index], st.STATIC_WIDTH)
-            
+
         self.shadow = Shadow(self.avatar, shadow_side)
 
         self.clear_ready()
@@ -121,6 +164,8 @@ class Player:
 
         self.history_x = []
         self.history_button = []
+
+        self.replay_index = 0  # AGENT: rewind the replay to the first row for each new trial
 
     def init_nonmotion(self) -> None:
         self.avatar = None

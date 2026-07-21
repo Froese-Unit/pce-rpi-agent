@@ -91,3 +91,26 @@ STATIC_X = (
 ) #(STATIC_ONE,STATIC_TWO)#setting the objects, and making object 2 180 degrees away#(ENV_WIDTH / 4, 3 * ENV_WIDTH / 4)  # objects x positions
 STATIC_WIDTH = 20 # ratio used 4/.07 = x/.46875 # width/the rotary increment # 4  # width of objects
 SHADOW_DELTA_RANGE = [150, 150] #[100, 250]  # range of distances between player and shadow
+
+
+# =====================================================================
+# NON-CONTINGENT REPLAY AGENT  (Condition 1)                20260716 AH
+# ---------------------------------------------------------------------
+# Turns one player slot into a "replay agent": instead of a live human on
+# the rotary controller, that avatar plays back a REAL participant's
+# recorded movements from a 2023 human-human PCE trial. It moves on its
+# own and does NOT react to the live participant -> the non-contingent
+# baseline (cf. Barone et al. 2020, "human offline").
+#
+# Recording used below: pair/session pce02230809 (recorded 2023-08-09),
+# participants P0=9874 & P1=8057, trial 0. We replay P1's trajectory.
+# Playback lives in player.py -> agent_step(); it is driven each tick from
+# phase.py -> Trial.step().
+#
+# NOTE: player.py reads the "pos1" column (i.e. player 1). That is coupled
+# to AGENT_PLAYER_INDEX = 1 below. If you ever make player 0 the agent,
+# also change the column read in player.py from "pos1" to "pos0".
+# =====================================================================
+AGENT_ENABLED = True          # master switch: turn the replay agent on/off for this run
+AGENT_PLAYER_INDEX = 1        # which slot is the agent: 1 = controller 2 / red avatar (player 0 stays the live human)
+AGENT_REPLAY_CSV = "sample_data/pce02230809/trials/DT=2023-08-09_03-33-28_DATA=controllers_P0=9874_P1=8057_TRIAL=0.csv"  # the one 2023 trial to replay
