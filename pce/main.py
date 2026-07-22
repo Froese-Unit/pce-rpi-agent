@@ -131,7 +131,7 @@ def main():
         [
             (phase.PreExperiment, {}),
             (phase.PreFirstResting, {}),
-            (phase.Resting, {}),
+            (phase.Resting, {}),  # 20260721 AH: kept (the frontend expects this phase) but shortened via DURATION_SECS["resting"] in settings.py — was 3 min
             (phase.PreTrials, {}),
         ]
         + [

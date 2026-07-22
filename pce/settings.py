@@ -6,8 +6,10 @@ REFRESH_RATE_VISUAL = 15
 # GLOBAL SETTINGS
 EXPERIMENT = {
     "NUM_TRIALS": [6, 6, 6],
-    #"DURATION_SECS": {"trial": 60, "resting": 3}, #quick testing
-    "DURATION_SECS": {"trial": 60, "resting": 3 * 60}, #original
+    # 20260721 AH: resting shortened for testing (3 min was too long). The frontend needs the
+    # resting phase to exist, so we keep it but use a short duration. Swap back to 3*60 for real runs.
+    "DURATION_SECS": {"trial": 60, "resting": 3}, #quick testing (original was "resting": 3 * 60)
+    #"DURATION_SECS": {"trial": 60, "resting": 3 * 60}, #original
     #"PERSONALITY_QUESTIONS_LIMIT": 2, #quick testing
     "PERSONALITY_QUESTIONS_LIMIT": None, #original
 }

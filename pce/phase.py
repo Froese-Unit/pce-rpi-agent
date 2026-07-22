@@ -170,9 +170,14 @@ class PreExperiment(Phase):
                 "p0": self.players[0].person is not None,
                 "p1": self.players[1].person is not None,
             },
+            # 20260721 AH: Big-5 pre-questionnaire disabled for PCE-AI. The Elm frontend's
+            # JSON decoder REQUIRES a "personality_pre" field, so we KEEP the key but mark it
+            # already-answered (True/True). This skips the form and never blocks progression
+            # (see `done`), without breaking the frontend decoder. Full removal later would
+            # also need an elm.js rebuild.
             "personality_pre": {
-                "p0": self.players[0].personality_pre is not None,
-                "p1": self.players[1].personality_pre is not None,
+                "p0": True,
+                "p1": True,
             },
         }
 
