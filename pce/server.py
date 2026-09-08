@@ -126,6 +126,22 @@ async def post_meta_slot(request: web.Request, uuid: UUID) -> web.Response:
     else:
         assert slot in ["p0", "p1"]
         player = game.players[int(slot[1:])]
+        # AGENT 20260813: the agent's slot is driven by agent_step(), not by a
+        # person, so it must stay unclaimed. Claiming it silently breaks the
+        # next request: as_player() maps a uuid to the FIRST player matching it,
+        # so a browser holding both slots has all its player requests routed to
+        # p0 (e.g. "pid of player 0 is already set" when setting p1's pid).
+        if player.is_agent:
+            logger.info(
+                "post_meta_slot: refused -- player %s is the agent slot", player.index
+            )
+            return error_response(
+                {
+                    "slot": f"slot {player.index} is the agent and cannot be joined; "
+                    "the agent plays it automatically"
+                },
+                status=409,
+            )
         if player.uuid is None:
             logger.info(
                 "post_meta_slot: set player %s slot to uuid %s", player.index, uuid

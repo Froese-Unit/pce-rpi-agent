@@ -5,6 +5,7 @@ import inspect
 import logging
 import os
 import pprint
+import random
 import re
 from concurrent.futures import CancelledError
 
@@ -108,3 +109,37 @@ def save_csv(filepath, fieldnames, rows):
         if add_header:
             writer.writeheader()
         writer.writerows(rows)
+
+
+# --- AGENT 20260904: randomized + counterbalanced condition sequence -------
+# Generates one condition per main trial for a session: as close to equal
+# counts of each condition as possible (counterbalanced), shuffled, with no
+# run of the same condition longer than `max_run` (proposal.md §5,
+# "Randomization": "randomize the sequence of the three conditions per
+# participant; constrain against long runs of the same condition"). Used by
+# main.py to assign each Trial phase its own condition (phase.py Trial's
+# `condition` kwarg), instead of one fixed condition for the whole session.
+def generate_agent_condition_sequence(
+    n_trials, conditions=("baseline", "non_contingent", "contingent"), max_run=2
+):
+    base_count, remainder = divmod(n_trials, len(conditions))
+    pool = list(conditions) * base_count + random.sample(conditions, remainder)
+    assert len(pool) == n_trials
+    for _ in range(10000):  # reshuffle until the max-run constraint holds
+        random.shuffle(pool)
+        if _longest_run(pool) <= max_run:
+            return pool
+    logger.warning(
+        "generate_agent_condition_sequence: could not satisfy max_run=%s "
+        "after 10000 shuffles -- returning the last shuffle as-is",
+        max_run,
+    )
+    return pool
+
+
+def _longest_run(seq):
+    longest = current = 1
+    for a, b in zip(seq, seq[1:]):
+        current = current + 1 if a == b else 1
+        longest = max(longest, current)
+    return longest

@@ -17,6 +17,23 @@ from pce.utils import (camel_to_snake, create_task, px_true, run_at_rate,
 logger = logging.getLogger(__name__)
 
 
+# --- AGENT: phase gating applies to humans only, 20260813 -----------------
+# Every phase advances when "all players" are ready / have answered their
+# questionnaire. With one slot driven by the agent (player.py agent_step())
+# there is nobody behind it to long-press or fill a form, so the session would
+# stall forever at the first gate. These two helpers make the gates ignore the
+# agent slot. Covers proposal.md §5.5 ("the agent should not need to answer the
+# questionnaire (may require code to bypass this)").
+def humans(players):
+    """The player slots with a real person behind them."""
+    return [p for p in players if not p.is_agent]
+
+
+def agent_done(players, index):
+    """True if slot `index` is the agent, i.e. its gate is auto-satisfied."""
+    return players[index].is_agent
+
+
 class Phase:
     training_types = [None, "visible", "hidden"]
 
@@ -167,8 +184,9 @@ class PreExperiment(Phase):
     def questionnaires_data(self):
         return {
             "person": {
-                "p0": self.players[0].person is not None,
-                "p1": self.players[1].person is not None,
+                # AGENT 20260813: an agent slot is auto-satisfied (see agent_done)
+                "p0": agent_done(self.players, 0) or self.players[0].person is not None,
+                "p1": agent_done(self.players, 1) or self.players[1].person is not None,
             },
             # 20260721 AH: Big-5 pre-questionnaire disabled for PCE-AI. The Elm frontend's
             # JSON decoder REQUIRES a "personality_pre" field, so we KEEP the key but mark it
@@ -230,7 +248,9 @@ class PreExperiment(Phase):
     @property
     def done(self):
         qdone = all([px_true(q) for q in self.questionnaires_data().values()])
-        pidsdone = all([p.pid is not None for p in self.players])
+        # AGENT 20260813: the agent self-assigns st.AGENT_PID (player.py), so it
+        # passes this on its own -- but gate on humans anyway, to be explicit.
+        pidsdone = all([p.pid is not None for p in humans(self.players)])
         return pidsdone and qdone
 
 
@@ -253,7 +273,7 @@ class PreFirstResting(Phase):
 
     @property
     def done(self):
-        return all([p.ready for p in self.players])
+        return all([p.ready for p in humans(self.players)])
 
     async def controllers_broadcast_start(self):
         logger.debug("PreFirstResting: controllers_broadcast_start")
@@ -325,14 +345,19 @@ class PreTrials(Phase):
 
     @property
     def done(self):
-        return all([p.ready for p in self.players])
+        return all([p.ready for p in humans(self.players)])
 
 
 class Trial(Phase):
-    def __init__(self, *args, training=None, **kwargs):
+    def __init__(self, *args, training=None, condition=None, **kwargs):
         assert training in self.training_types
         self._done = False
         self.training = training
+        # AGENT 20260904: this trial's own agent condition, set by main.py's
+        # randomized/counterbalanced sequence (main trials only -- training
+        # trials pass no `condition`, so they fall back to whatever
+        # st.AGENT_CONDITION already is; see start_tasks() below).
+        self.condition = condition
         super().__init__(*args, **kwargs)
 
     def event_data(self):
@@ -359,22 +384,51 @@ class Trial(Phase):
         logger.info("Trial: start_tasks")
         #shadow_side = 2 * randint(0, 1) - 1
         shadow_side = 1 #no more switching sides, from Leonardos PI
+
+        # AGENT 20260904: apply this trial's condition BEFORE init_motion()
+        # below, since player.py reads st.AGENT_CONDITION there to decide
+        # whether to draw a replay recording. self._agent_condition_used is
+        # recorded for save() -- it's whatever ran, whether from this
+        # trial's own `condition` or (for training trials) the settings.py
+        # default.
+        if self.condition is not None:
+            st.AGENT_CONDITION = self.condition
+        self._agent_condition_used = st.AGENT_CONDITION
+        logger.info(
+            "Trial: agent condition = %s (trial_index=%s)",
+            self._agent_condition_used,
+            self.trial_index(),
+        )
+
         for p in self.players:
             p.init_motion(shadow_side)
             p.controller.led_on()
         self.timestamps = []
         trial_duration = st.GLOBAL["DURATION_SECS"]["trial"]
+        self._prev_tick_time = None  # AGENT: previous tick's current_time, to compute dt below
 
         def step(current_time, start_time):
-            # --- AGENT: drive the replay avatar once per tick ----------------
+            # --- AGENT: drive the agent once per tick -------------------------
             # This inner step() is the body of the trial loop; it runs every
-            # tick. For the replay agent we advance it to its recorded position
-            # for the current elapsed time BEFORE record()/update_feedbacks(),
-            # so the logged row and the haptic feedback reflect the agent's move
-            # on this same tick. agent_step() is a no-op for the live human.
+            # tick. We move the agent (kernel-driven, see player.py ->
+            # agent_step()) for the current elapsed time BEFORE
+            # record()/update_feedbacks(), so the logged row and the haptic
+            # feedback reflect the agent's move on this same tick.
+            # agent_step() is a no-op for the live human.
             elapsed = current_time - start_time      # seconds since trial start
+            # dt: seconds since the previous tick. None on the first tick of a
+            # trial (self._prev_tick_time reset above in start_tasks), which
+            # agent_step() treats as "skip the V update this tick".
+            dt = (
+                0.0 if self._prev_tick_time is None
+                else current_time - self._prev_tick_time
+            )
+            self._prev_tick_time = current_time
+            # OLD (20260716), single-arg call -- superseded 20260807 once the
+            # kernel agent needed dt too:
+            #     p.agent_step(elapsed)
             for p in self.players:
-                p.agent_step(elapsed)                # AGENT: time-based replay
+                p.agent_step(elapsed, dt)            # AGENT: contact-memory kernel (all 3 conditions)
             self.record(current_time - start_time)
             self.update_feedbacks()
 
@@ -489,6 +543,12 @@ class Trial(Phase):
 
     def save(self):
         data = pandas.DataFrame({"timestamp": self.timestamps})
+        # AGENT 20260904: which condition this trial actually ran under --
+        # constant for every row, needed downstream as proposal.md §6.1's
+        # `partner_type` variable (analysis can't infer this from V/c_t/mode
+        # alone, e.g. baseline and a quiet non_contingent stretch can look
+        # similar).
+        data["agent_condition"] = self._agent_condition_used
         data[f"static_object_0"] = st.OBJ_LOCATION_ZERO #Shows that motor is on
         data[f"static_object_1"] = st.OBJ_LOCATION_ZERO + 300 #Shows that motor is on
         data[f"motor_0_vibrate_software"] = self.history_motor_0 #Shows that motor is on
@@ -499,6 +559,17 @@ class Trial(Phase):
             assert len(data.timestamp) == len(p.history_button)
             data[f"button{p.index}"] = p.history_button
             data[f"shadow_delta{p.index}"] = ones_like(p.history_x) * p.shadow.delta
+
+        # --- AGENT 20260816: save the agent's own V/c_t/mode traces --------------
+        # Only the agent player has these (agent_step() is a no-op for the live
+        # human, so their traces would be empty lists) -- appended at the end,
+        # after the usual pos/button/shadow_delta columns above.
+        for p in self.players:
+            if p.is_agent:
+                assert len(data.timestamp) == len(p.V_trace)
+                data[f"V{p.index}"] = p.V_trace
+                data[f"c_t{p.index}"] = p.c_trace
+                data[f"engaging{p.index}"] = p.engaging_trace
 
         filepath = os.path.join(
             self.game.trials_dir,
@@ -543,8 +614,9 @@ class AfterTrial(Phase):
     def questionnaires_data(self):
         return {
             "experience": {
-                "p0": self.experiences[0] is not None,
-                "p1": self.experiences[1] is not None,
+                # AGENT 20260813: the agent doesn't rate its own experience
+                "p0": agent_done(self.players, 0) or self.experiences[0] is not None,
+                "p1": agent_done(self.players, 1) or self.experiences[1] is not None,
             },
         }
 
@@ -661,9 +733,9 @@ class AfterTrial(Phase):
         qdone = all([px_true(q) for q in self.questionnaires_data().values()])
         if (not st.TRAINING_TRIAL_HAS_QUESTIONNAIRES) and (self.training is not None):
             # Training trial questionnaires are deactivated, and we're in training mode
-            return all([p.ready for p in self.players])
+            return all([p.ready for p in humans(self.players)])
         else:
-            return qdone and all([p.ready for p in self.players])
+            return qdone and all([p.ready for p in humans(self.players)])
 
 
 class AfterResting(Phase):
@@ -683,7 +755,7 @@ class AfterResting(Phase):
 
     @property
     def done(self):
-        return all([p.ready for p in self.players])
+        return all([p.ready for p in humans(self.players)])
 
 
 class AfterExperiment(Phase):

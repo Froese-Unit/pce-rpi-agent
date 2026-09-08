@@ -125,7 +125,12 @@ class Tui(App):
     async def action_move(self, player: int, direction: int) -> None:
         logger.info("tui: player %s: move %s", player, direction)
         # Multipy movement as the actual rotary encoder does 1024 ticks per rotation
-        for _ in range(10):
+        # 20260813 AH: bumped 10 -> st.TUI_MOVE_TICKS. At 10 ticks a keypress moves
+        # 10 * 0.46875 = 4.7 units, so a ~15/s key-repeat gives ~70 units/s -- a
+        # quarter of the agent's 280 units/s explore speed. You then cannot stay
+        # in contact, V never reaches AGENT_V_THRESHOLD, and the agent looks like
+        # it is ignoring you. Keyboard testing only; the real rotary is unaffected.
+        for _ in range(st.TUI_MOVE_TICKS):
             self.game.players[player].rotary_callback(direction)
 
     async def action_press(self, player: int) -> None:
