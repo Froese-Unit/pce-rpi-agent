@@ -230,8 +230,17 @@ AGENT_RETURN_SPEED = 280       # units/second while heading back to x_last_conta
 # restricting to trial_2 avoids the bad data by construction rather than
 # filtering it out after the fact. One trial_2 file per 2023 session
 # (pair_NN_trial_2.csv, NN = 01..32) -- 32 candidates.
+#
+# 20260908 AH: moved from "../../sample-data/" (a sibling directory outside
+# this repo) to "sample-data/" (committed inside this repo) -- a fresh
+# `git clone` of this repo was missing that outside folder entirely (it was
+# never part of this repo), which crashed the very first non_contingent
+# trial with "IndexError: pop from empty list" on real Pi hardware. Only
+# the 32 files this glob actually needs are committed (72MB), not the full
+# ~1.6GB original sample-data/ (which also has per-trial rotary logs,
+# questionnaires, etc. nothing here reads).
 AGENT_REPLAY_CONTACT_POOL = sorted(
-    glob.glob("../../sample-data/pce*/trials/pair_*_trial_2.csv")
+    glob.glob("sample-data/pce*/trials/pair_*_trial_2.csv")
 )
 
 # 20260813 AH -- how often (seconds) player.py logs the agent's V and
