@@ -228,6 +228,18 @@ AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0  # average seconds between direction reve
 AGENT_HOLD_JITTER = 6
 AGENT_RETURN_SPEED = 280       # units/second while heading back to x_last_contact
 
+# FIX 2026-09-15 AH -- caps how long a single hold can last (jitter alone
+# wasn't enough: real hardware testing the same day found that since the
+# jittering agent barely moves, a participant can just stay still near it
+# and hold contact indefinitely -- "camping", a new/worse version of towing).
+# After AGENT_MAX_HOLD_SECS of continuous holding, force explore for
+# AGENT_HOLD_COOLDOWN_SECS regardless of continued contact -- see player.py
+# agent_step() step 5a. Both numbers come from the real 2023 contact/gap
+# rhythm already used elsewhere in this file (contacts ~0.25s, gaps ~0.5s),
+# NOT from today's exploratory pilot session (lab-notebook.md 2026-09-15).
+AGENT_MAX_HOLD_SECS = 0.5       # ~2x the real median contact duration
+AGENT_HOLD_COOLDOWN_SECS = 0.5  # matches the real median gap duration
+
 # OLD (single fixed recording) -- superseded 20260816 by AGENT_REPLAY_CONTACT_POOL below.
 # AGENT_REPLAY_CONTACT_CSV = "../../sample-data/pce02230809/trials/pair_02_trial_2.csv"
 
