@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from random import randint, random, shuffle
+from random import randint, random, shuffle, uniform
 from typing import List, Optional
 from uuid import UUID, uuid4
 
@@ -66,6 +66,7 @@ class Player:
         self._prev_c = 0            # AGENT: last tick's c_t, to detect the falling edge ("contact just broke")
         self._last_debug_t = -999.0  # AGENT: when the V/mode debug line was last logged
         self._explore_direction = 1  # AGENT 20260907: +1/-1, which way explore mode is currently sweeping (resets each trial, see init_motion())
+        self._hold_anchor = None  # AGENT 20260915: fixed position "hold" jitters around, set fresh each time a hold begins (resets each trial, see init_motion())
 
         # --- AGENT 20260816: per-tick traces for the saved trial CSV ------------
         # V/c_t/mode, saved by phase.py's Trial.save() (only for the agent -- see
@@ -230,19 +231,31 @@ class Player:
         self.engaging_trace.append(engaging)
 
         # --- step 5: move one step ---------------------------------------------
-        # KNOWN BUG (towing, 2026-08-13): a participant can lead the agent
-        # around the ring by matching its hold speed. Three fixes tried and
-        # reverted 08-16 (see settings.py AGENT_ENGAGE_SLOWDOWN comment) --
-        # still unresolved, back to the original crawl below for now.
+        # FIXED 2026-09-15 (towing bug, found 08-13): a constant crawl-forward
+        # speed while holding -- however slow -- can be matched and followed
+        # indefinitely (confirmed on real hardware 09-15: one hold measured at
+        # 8.99s, vs. the ~0.25s target -- see lab-notebook.md). Switched to a
+        # small jitter BOUNDED around a fixed anchor (the position where this
+        # hold began), not a steady crawl -- so there is no constant speed to
+        # match, and (unlike the 08-16 jitter attempt, likely an unbounded
+        # accumulating random walk) it can never drift arbitrarily far from
+        # the contact point no matter how long the hold lasts.
         if engaging and c_t == 1:
-            # hold: slow down while overlapping, not oscillate (data does not
-            # support "probe" -- proposal.md §5.1 addendum (e)).
-            self.avatar.x += st.AGENT_EXPLORE_SPEED * st.AGENT_ENGAGE_SLOWDOWN * dt
+            # hold: jitter around a fixed anchor, not oscillate (data does not
+            # support "probe" -- proposal.md §5.1 addendum (e)) and not a
+            # steady crawl (towable, see above).
+            if self._hold_anchor is None:
+                self._hold_anchor = self.avatar.x  # first tick of this hold: anchor here
+            self.avatar.x = self._hold_anchor + uniform(
+                -st.AGENT_HOLD_JITTER, st.AGENT_HOLD_JITTER
+            )
         elif engaging and self.x_last_contact is not None:
             # return: head back toward where contact last broke (proposal.md
             # §5.1 addendum (f) -- V alone can't do this, needs x_last_contact).
+            self._hold_anchor = None  # left hold mode; next hold gets a fresh anchor
             self._step_toward(self.x_last_contact, st.AGENT_RETURN_SPEED * dt)
         else:
+            self._hold_anchor = None  # left hold mode; next hold gets a fresh anchor
             # explore: sweep the ring, occasionally reversing direction.
             # PLACEHOLDER 20260907 AH -- memoryless (Poisson-style) reversal:
             # each tick has probability dt/AGENT_EXPLORE_REVERSAL_MEAN_SECS of
@@ -351,6 +364,7 @@ class Player:
         self.x_last_contact = None  # AGENT: no stored return-point yet this trial
         self._prev_c = 0            # AGENT: no prior tick this trial
         self._explore_direction = 1  # AGENT 20260907: always start sweeping the same way each trial
+        self._hold_anchor = None  # AGENT 20260915: no hold in progress at trial start
 
         # --- AGENT 20260816: draw this trial's "non_contingent" recording -------
         # A fresh file per trial, without replacement (see the __init__

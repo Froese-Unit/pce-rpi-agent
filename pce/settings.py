@@ -208,12 +208,24 @@ AGENT_EXPLORE_SPEED = 280      # units/second while sweeping
 # itself was derived from real recorded speeds, not guessed.
 AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0  # average seconds between direction reversals while exploring
 
-# Fraction of AGENT_EXPLORE_SPEED used while "holding" (engaged and touching).
-# This value (0.3) lets a participant "tow" the agent by matching its speed --
-# found 2026-08-13, still unresolved. Three fixes tried and reverted 08-16
-# (0.0 fully stationary -- froze for 20-30s; 0.03 slow crawl -- still an
-# obvious steady drift; random jitter -- buggy); see player.py's hold branch.
-AGENT_ENGAGE_SLOWDOWN = 0.3    # fraction of AGENT_EXPLORE_SPEED while overlapping ("hold")
+# OLD (found 2026-08-13, superseded 20260915) -- constant crawl-forward speed
+# while "holding". This WAS the towing bug: a participant could match this
+# fixed speed and lead the agent around indefinitely -- confirmed on real
+# hardware 09-15 (one hold measured at 8.99s vs. the ~0.25s target, 36x too
+# long). Replaced by AGENT_HOLD_JITTER below (bounded jitter, no constant
+# speed to match) -- see player.py's hold branch.
+# AGENT_ENGAGE_SLOWDOWN = 0.3
+
+# PLACEHOLDER 20260915 AH -- how far (+/- units) the "hold" position jitters
+# around a fixed anchor (the position where the hold began). Explicitly NOT
+# derived from today's pilot recordings -- that session was exploratory
+# testing, not a clean recording to estimate parameters from (see
+# lab-notebook.md 2026-09-15). Revisit once real data is available, same as
+# AGENT_EXPLORE_SPEED was. Bounded around a fixed anchor, not accumulated --
+# unlike the reverted 08-16 jitter attempt (likely an unbounded random walk
+# with no restoring force), this can never drift arbitrarily far no matter
+# how long the hold lasts.
+AGENT_HOLD_JITTER = 6
 AGENT_RETURN_SPEED = 280       # units/second while heading back to x_last_contact
 
 # OLD (single fixed recording) -- superseded 20260816 by AGENT_REPLAY_CONTACT_POOL below.
