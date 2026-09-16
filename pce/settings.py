@@ -10,22 +10,11 @@
 # agent moves, how big the ring is, etc., you change a value here rather than
 # editing the logic in phase.py/player.py.
 #
-# Roughly top-to-bottom: timing/refresh rates -> global experiment/test
-# config (trial counts, training) -> GPIO pin numbers -> the virtual
-# environment's geometry (ring width, avatar/object sizes/positions) ->
-# the AGENT settings (the block you've been reading through with me --
-# condition, tau, threshold, speeds, the 2023 replay pool).
-#
-# A few module-level side effects live here too (e.g. `import random` +
-# `random.randint(...)` at line ~89, used once to help pick a static
-# object's starting position) -- these run once, at import time, not
-# per-trial.
 import glob  # AGENT 20260816: for AGENT_REPLAY_CONTACT_POOL below
 
 # REFRESH RATES
 REFRESH_RATE_DATA = 1000 #Frequency Changes go here, 100 is original, 10 made the motor skip - too low
 REFRESH_RATE_VISUAL = 15
-
 
 # GLOBAL SETTINGS
 EXPERIMENT = {
@@ -50,7 +39,7 @@ PERSONALITY_QUESTIONS_LIMIT = None
 # questionnaires (the pre-experiment one is already separately hardcoded off
 # in phase.py's PreExperiment.questionnaires_data(), 20260721). These 3
 # switches turn off the rest: the per-trial "experience"/PAS questionnaire
-# during PRACTICE trials only (main trials are unaffected -- PAS still runs
+# during PRACTICE trials only (main trials are unaffected: PAS still runs
 # after every main trial, see phase.py AfterTrial.can_become_ready/done),
 # the post-experiment personality questionnaire, and the post-experiment
 # partner-traits questionnaire.
@@ -79,7 +68,7 @@ SHORT_BEEP_SECS = 0.1
 # FIXME: if ROTARY_INCREMENT is large (>= .1), moving fast over a buzz point leads to no buzz,
 # i.e. the buzz goes on then off too fast to be turned on by the runtime, or too fast to properly
 # start vibrating. Solutions are:
-# - reducing ROTARy_INCREMENT
+# - reducing ROTARY_INCREMENT
 # - increasing the size of objects (these two can be computed, given the maximum
 #   rotation speed people can reach)
 # - always buzz for a minimum time (the duration needed to start resonance), even if the
@@ -95,7 +84,6 @@ READINESS_PRESS_DURATION_SECS = 1
 # never keep up, never hold contact, and the agent never engages. 40 gives
 # ~18.8 units/press (~280 units/s at 15 presses/s), i.e. parity with the agent.
 TUI_MOVE_TICKS = 40
-
 
 # PIN SETTINGS
 PINS_CONTROLLERS = (
@@ -144,7 +132,7 @@ AGENT_PLAYER_INDEX = 1  # which slot is the agent (1 = controller 2 / red avatar
 
 
 # =====================================================================
-# KERNEL AGENT -- 3 conditions (proposal.md §5.2)   20260807 AH
+# THE AGENTS (proposal.md §5.2)
 # 3rd condition (baseline) added 20260904 AH
 # ---------------------------------------------------------------------
 # All three conditions run the SAME mechanism (player.py -> agent_step(),
@@ -157,8 +145,8 @@ AGENT_PLAYER_INDEX = 1  # which slot is the agent (1 = controller 2 / red avatar
 #     (AGENT_REPLAY_CONTACT_POOL below), indexed by elapsed time.
 #   - "contingent"     -> Condition 3: c_t is the agent's own LIVE contact
 #     flag this tick.
-# Movement generation is identical in all three -- equally lifelike by
-# construction (proposal.md §5.2 addendum 2026-07-30).
+# Movement generation is identical in all three
+# (proposal.md §5.2 addendum 2026-07-30).
 # =====================================================================
 AGENT_CONDITION = "non_contingent"  # "baseline" | "non_contingent" | "contingent"
 # Default/fallback only -- used for training/practice trials and whenever a
@@ -178,35 +166,23 @@ AGENT_TAU_SECS = 1.5
 # agent will flip explore/engage every ~0.75s cycle) -- see proposal.md §5.1
 # addendum (c) and lab-notebook.md 2026-07-30/08-03.
 
-# PLACEHOLDER -- the threshold is an OPEN design question, not yet decided
+# Here, this threshold is still an OPEN design question that is still to be decided.
 # (proposal.md §5.1 addendum (d); lab-notebook.md 2026-08-07 "still to
-# decide"). V's ceiling is only ~0.2-0.4 and is person-specific, so a fixed
-# threshold is a known confound, not just a tuning detail. Using a fixed
-# placeholder here to get all three conditions running end to end; revisit
-# before piloting (calibrate per participant, or normalise V instead).
+# decide"). We are using a fixed palceholder here to get all three conditions
+# running; but should revisit this before actual piloting e.g., calibrate per
+# participant, or normalise V instead.
 AGENT_V_THRESHOLD = 0.15
 
-# PLACEHOLDER -- no data yet on explore-mode sweep DIRECTION (still on the
-# "still to decide" list). But the SPEED SCALE itself is not arbitrary: it is
-# set from real movement in pair_02_trial_2.csv (median |speed| while actually
-# moving is ~278 units/s, 90th pct ~290 units/s -- computed 2026-08-07).
-# An earlier placeholder of 1.0 units/s was ~300x too slow -- on the
-# 600-unit ring that took ~10 minutes per sweep, which is what looked like
-# "the agent doesn't move" during both training and real trials (agent_step()
-# runs identically in both -- see phase.py/main.py, no training-specific
-# branch exists).
+# The agent's explore speed is also a placeholder. However, the speed is not
+# arbitrary: it is the median number of the real recorded speed from 2023 data.
 AGENT_EXPLORE_SPEED = 280      # units/second while sweeping
 
-# PLACEHOLDER 20260907 AH -- explore-mode never changed direction at all
+# 20260907 AH so the explore-mode never changed direction at all
 # (constant one-way sweep, so it visibly loops in a circle -- most obvious in
 # the baseline condition, which spends 100% of the trial in explore). This is
 # a rough placeholder, NOT derived from the 2023 data's real direction-change
-# frequency during non-contact stretches (that analysis hasn't been done yet
-# -- discussed 2026-09-07, deferred). Applies identically to all 3 conditions
-# (player.py's explore branch has no condition-specific code) -- revisit by
-# measuring real reversal timing before piloting, same as AGENT_EXPLORE_SPEED
-# itself was derived from real recorded speeds, not guessed.
-AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0  # average seconds between direction reversals while exploring
+# frequency during non-contact stretches.
+AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0
 
 # OLD (found 2026-08-13, superseded 20260915) -- constant crawl-forward speed
 # while "holding". This WAS the towing bug: a participant could match this
@@ -216,66 +192,31 @@ AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0  # average seconds between direction reve
 # speed to match) -- see player.py's hold branch.
 # AGENT_ENGAGE_SLOWDOWN = 0.3
 
-# PLACEHOLDER 20260915 AH -- how far (+/- units) the "hold" position jitters
-# around a fixed anchor (the position where the hold began). Explicitly NOT
-# derived from today's pilot recordings -- that session was exploratory
-# testing, not a clean recording to estimate parameters from (see
-# lab-notebook.md 2026-09-15). Revisit once real data is available, same as
-# AGENT_EXPLORE_SPEED was. Bounded around a fixed anchor, not accumulated --
-# unlike the reverted 08-16 jitter attempt (likely an unbounded random walk
-# with no restoring force), this can never drift arbitrarily far no matter
-# how long the hold lasts.
+# How far (+/- units) the agent wobbles around a fixed spot while holding,
+# instead of crawling or freezing. Placeholder, not measured from data.
 AGENT_HOLD_JITTER = 6
-AGENT_RETURN_SPEED = 280       # units/second while heading back to x_last_contact
+AGENT_RETURN_SPEED = 280 # units/second while heading back to x_last_contact
 
-# FIX 2026-09-15 AH -- caps how long a single hold can last (jitter alone
-# wasn't enough: real hardware testing the same day found that since the
-# jittering agent barely moves, a participant can just stay still near it
-# and hold contact indefinitely -- "camping", a new/worse version of towing).
-# After AGENT_MAX_HOLD_SECS of continuous holding, force explore for
-# AGENT_HOLD_COOLDOWN_SECS regardless of continued contact -- see player.py
-# agent_step() step 5a. Both numbers come from the real 2023 contact/gap
-# rhythm already used elsewhere in this file (contacts ~0.25s, gaps ~0.5s),
-# NOT from today's exploratory pilot session (lab-notebook.md 2026-09-15).
+# Caps how long the agent can linger with you in one hold before giving up
+# (AGENT_MAX_HOLD_SECS), and how long it must then explore before it's
+# allowed to hold again (AGENT_HOLD_COOLDOWN_SECS). Both match the real 2023
+# contact/gap rhythm (~0.25s / ~0.5s), not today's pilot data.
 AGENT_MAX_HOLD_SECS = 0.5       # ~2x the real median contact duration
 AGENT_HOLD_COOLDOWN_SECS = 0.5  # matches the real median gap duration
 
 # OLD (single fixed recording) -- superseded 20260816 by AGENT_REPLAY_CONTACT_POOL below.
 # AGENT_REPLAY_CONTACT_CSV = "../../sample-data/pce02230809/trials/pair_02_trial_2.csv"
 
-# Pool of 2023 recordings feeding Condition 2 (non-contingent). player.py
-# draws a different one per trial, without replacement (see init_motion()),
-# instead of always the same file -- the previous behaviour was learnable
-# ("regular = machine", lab-notebook.md 2026-08-16).
-#
-# Only trial_2 of each session is used -- never trial_1: trial 1 of every
-# session has the buzz-stuck-on recording bug (module-level MOTOR_EXCEL_0/1
-# globals not reset between trials; proposal.md §5.2 addendum 2026-07-30), so
-# restricting to trial_2 avoids the bad data by construction rather than
-# filtering it out after the fact. One trial_2 file per 2023 session
-# (pair_NN_trial_2.csv, NN = 01..32) -- 32 candidates.
-#
-# 20260908 AH: moved from "../../sample-data/" (a sibling directory outside
-# this repo) to "sample-data/" (committed inside this repo) -- a fresh
-# `git clone` of this repo was missing that outside folder entirely (it was
-# never part of this repo), which crashed the very first non_contingent
-# trial with "IndexError: pop from empty list" on real Pi hardware. Only
-# the 32 files this glob actually needs are committed (72MB), not the full
-# ~1.6GB original sample-data/ (which also has per-trial rotary logs,
-# questionnaires, etc. nothing here reads).
+# 32 real 2023 recordings for the non_contingent condition; a different one
+# drawn per trial, no repeats (player.py). Only trial_2 files -- trial_1 has
+# a known recording bug. Lives inside this repo so `git clone` gets it.
 AGENT_REPLAY_CONTACT_POOL = sorted(
     glob.glob("sample-data/pce*/trials/pair_*_trial_2.csv")
 )
 
-# 20260813 AH -- how often (seconds) player.py logs the agent's V and
-# explore/engage mode during a trial. The mode switch is otherwise hard to
-# observe: while you chase the agent you match its speed, so the slowdown is
-# invisible. Set to 0 to turn the logging off (do that for real data collection;
-# at 1.0 a 60 s trial adds ~60 lines).
+# How often (seconds) the terminal prints the agent's V/mode while testing.
+# Set to 0 to turn off (do this for real data collection).
 AGENT_DEBUG_LOG_SECS = 1.0
 
-# Placeholder pid for the agent slot, used only in saved filenames
-# (e.g. ..._P0=1234_P1=AGENT_TRIAL=0.csv) so agent runs are obvious on disk
-# and never collide with a real participant id. The agent has no uuid and
-# never registers through the web frontend -- see player.py __init__.
+# Placeholder ID for the agent slot, used only in saved filenames.
 AGENT_PID = "AGENT"
