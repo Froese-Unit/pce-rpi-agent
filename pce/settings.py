@@ -161,25 +161,31 @@ AGENT_CONDITION = "non_contingent"  # "baseline" | "non_contingent" | "contingen
 AGENT_CONDITION_MAX_RUN = 2
 
 AGENT_TAU_SECS = 1.5
-# Memory length tau, in seconds. Range 1-2s is set by the data (gaps between
-# contacts are ~0.5s, and V must not decay away across a normal gap or the
-# agent will flip explore/engage every ~0.75s cycle) -- see proposal.md §5.1
-# addendum (c) and lab-notebook.md 2026-07-30/08-03.
-# The EWMA FORM (not this specific value) follows serial-choice-history
-# psychophysics literature (proposal.md §5.1: jov.arvojournals.org/article.aspx?
-# articleid=2194025, nature.com/articles/ncomms14637); 1.5s itself is our own
-# data fit, not from those papers.
+# Memory length tau, in seconds. Verified against the FULL 2023 dataset (all
+# 64 participants, not one trial) in data-simulations/2-Agent_Parameter_
+# Justification.ipynb (20260916): real median gap = 0.457s; retention e^(-gap/
+# tau) is 16% at tau=0.25s (too short, V collapses every gap) vs. 74% at
+# tau=1.5s (comfortable margin). The EWMA FORM (not this value) follows
+# serial-choice-history psychophysics literature (proposal.md §5.1:
+# jov.arvojournals.org/article.aspx?articleid=2194025, nature.com/articles/
+# ncomms14637); 1.5s itself is our own data fit, not from those papers.
 
 # Still an OPEN design question (proposal.md §5.1 addendum (d)). V is an EWMA
 # of a 0/1 signal, so its long-run ceiling is roughly the fraction of time in
-# contact -- measured at ~0.2-0.4 in the 2023 data (lab-notebook.md 08-07),
-# and person-specific (contact counts varied ~8x across 64 participants).
-# Fixed placeholder for now; revisit via per-participant calibration.
+# contact. Verified across all 64 participants (2-Agent_Parameter_
+# Justification.ipynb, 20260916): median 0.321, 25th/75th pct 0.251/0.412 --
+# but a 10x spread person to person (0.098 to 0.945), which is the actual
+# evidence a single fixed threshold is a known confound, not just a guess
+# that it might be. Fixed placeholder for now; revisit via calibration.
 AGENT_V_THRESHOLD = 0.15
 
-# Not arbitrary: computed as |position change| / |time change| per tick in a
-# real 2023 trial, excluding near-stationary ticks -- median ~278 units/s,
-# 90th pct ~290 (pair_02_trial_2.csv). 280 rounds that median.
+# Computed as |position change| / |time change| per tick, excluding near-
+# stationary ticks. Originally from one trial only (median ~278 units/s,
+# 90th pct ~290) -- redone across the FULL dataset, all 64 participants,
+# 20260916 (2-Agent_Parameter_Justification.ipynb): median 275.1 units/s
+# (barely moved, 280 still holds up) but 90th pct 360.8 (the one-trial
+# estimate understated the real spread -- don't cite ~290 as the 90th pct
+# figure going forward, use 361).
 AGENT_EXPLORE_SPEED = 280      # units/second while sweeping
 
 # 20260907 AH so the explore-mode never changed direction at all
