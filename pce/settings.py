@@ -165,16 +165,21 @@ AGENT_TAU_SECS = 1.5
 # contacts are ~0.5s, and V must not decay away across a normal gap or the
 # agent will flip explore/engage every ~0.75s cycle) -- see proposal.md §5.1
 # addendum (c) and lab-notebook.md 2026-07-30/08-03.
+# The EWMA FORM (not this specific value) follows serial-choice-history
+# psychophysics literature (proposal.md §5.1: jov.arvojournals.org/article.aspx?
+# articleid=2194025, nature.com/articles/ncomms14637); 1.5s itself is our own
+# data fit, not from those papers.
 
-# Here, this threshold is still an OPEN design question that is still to be decided.
-# (proposal.md §5.1 addendum (d); lab-notebook.md 2026-08-07 "still to
-# decide"). We are using a fixed palceholder here to get all three conditions
-# running; but should revisit this before actual piloting e.g., calibrate per
-# participant, or normalise V instead.
+# Still an OPEN design question (proposal.md §5.1 addendum (d)). V is an EWMA
+# of a 0/1 signal, so its long-run ceiling is roughly the fraction of time in
+# contact -- measured at ~0.2-0.4 in the 2023 data (lab-notebook.md 08-07),
+# and person-specific (contact counts varied ~8x across 64 participants).
+# Fixed placeholder for now; revisit via per-participant calibration.
 AGENT_V_THRESHOLD = 0.15
 
-# The agent's explore speed is also a placeholder. However, the speed is not
-# arbitrary: it is the median number of the real recorded speed from 2023 data.
+# Not arbitrary: computed as |position change| / |time change| per tick in a
+# real 2023 trial, excluding near-stationary ticks -- median ~278 units/s,
+# 90th pct ~290 (pair_02_trial_2.csv). 280 rounds that median.
 AGENT_EXPLORE_SPEED = 280      # units/second while sweeping
 
 # 20260907 AH so the explore-mode never changed direction at all
@@ -182,6 +187,9 @@ AGENT_EXPLORE_SPEED = 280      # units/second while sweeping
 # the baseline condition, which spends 100% of the trial in explore). This is
 # a rough placeholder, NOT derived from the 2023 data's real direction-change
 # frequency during non-contact stretches.
+# Randomized, not a fixed period -- see player.py agent_step() (~line 291), a
+# fresh weighted coin-flip every tick, so reversals space out unpredictably
+# around this average, not like clockwork.
 AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0
 
 # OLD (found 2026-08-13, superseded 20260915) -- constant crawl-forward speed
@@ -194,13 +202,16 @@ AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0
 
 # How far (+/- units) the agent wobbles around a fixed spot while holding,
 # instead of crawling or freezing. Placeholder, not measured from data.
+# Both direction and step size are randomized -- see player.py agent_step()
+# (~line 274), a fresh uniform(-6, 6) draw every tick, not a fixed pattern.
 AGENT_HOLD_JITTER = 6
-AGENT_RETURN_SPEED = 280 # units/second while heading back to x_last_contact
+AGENT_RETURN_SPEED = 280  # units/second while heading back to x_last_contact -- reuses AGENT_EXPLORE_SPEED's real-data-derived value
 
 # Caps how long the agent can linger with you in one hold before giving up
 # (AGENT_MAX_HOLD_SECS), and how long it must then explore before it's
-# allowed to hold again (AGENT_HOLD_COOLDOWN_SECS). Both match the real 2023
-# contact/gap rhythm (~0.25s / ~0.5s), not today's pilot data.
+# allowed to hold again (AGENT_HOLD_COOLDOWN_SECS). "Cooldown" = a forced
+# waiting period after an action, before it's allowed to happen again. Both
+# match the real 2023 contact/gap rhythm (~0.25s / ~0.5s), not pilot data.
 AGENT_MAX_HOLD_SECS = 0.5       # ~2x the real median contact duration
 AGENT_HOLD_COOLDOWN_SECS = 0.5  # matches the real median gap duration
 
