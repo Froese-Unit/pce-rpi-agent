@@ -413,7 +413,10 @@
                 "resting-relax": "Take a few moments to relax",
                 "resting-comfortable": "Find a comfortable position with your hands on the table",
                 "wait-resting-title": "Please keep your eyes closed and your hands on the table",
-                "wait-resting-sub-title": "The Resting phase will start in a few moments."
+                "wait-resting-sub-title": "The Resting phase will start in a few moments.",
+                "after-experiment-next": "We have now completed all the trials.",
+                "wait-after-experiment-title": "Please wait a moment",
+                "wait-after-experiment-sub-title": "The final questionnaires will start in a few moments."
             },
             "after-resting": {
                 "back-to-trials": "We are now going back to trials.",
@@ -474,6 +477,7 @@
                 "next-phase-trial-hidden": "test trial with hidden space",
                 "next-phase-trial": "trial",
                 "next-phase-resting": "resting state",
+                "next-phase-after-experiment": "post-experiment questionnaire phase",
                 "questionnaire-completed": "Experience questionnaire completed"
             },
             "after-resting": {

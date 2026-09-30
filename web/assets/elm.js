@@ -11539,6 +11539,7 @@ var $author$project$Decode$config = A9(
 	A2($elm$json$Json$Decode$field, 'shadow_delta1', $elm$json$Json$Decode$float),
 	A2($elm$json$Json$Decode$field, 'training', $author$project$Decode$nullableTraining));
 var $elm$json$Json$Decode$map4 = _Json_map4;
+var $author$project$Types$AfterExperimentPhase = {$: 'AfterExperimentPhase'};
 var $author$project$Types$RestingPhase = {$: 'RestingPhase'};
 var $author$project$Types$TrialPhase = function (a) {
 	return {$: 'TrialPhase', a: a};
@@ -11552,6 +11553,8 @@ var $author$project$Decode$nextPhaseHelp = function (p) {
 				A2($elm$json$Json$Decode$field, 'training', $author$project$Decode$nullableTraining));
 		case 'resting':
 			return $elm$json$Json$Decode$succeed($author$project$Types$RestingPhase);
+		case 'after_experiment':
+			return $elm$json$Json$Decode$succeed($author$project$Types$AfterExperimentPhase);
 		default:
 			return $elm$json$Json$Decode$fail('Trying to decode NextPhase, but value ' + (p + ' is not supported'));
 	}
@@ -20683,21 +20686,24 @@ var $mdgriffith$elm_ui$Element$moveLeft = function (x) {
 };
 var $author$project$Utils$nextPhaseToString = F2(
 	function (model, nextPhase) {
-		if (nextPhase.$ === 'TrialPhase') {
-			if (nextPhase.a.$ === 'Just') {
-				if (nextPhase.a.a.$ === 'Visible') {
-					var _v1 = nextPhase.a.a;
-					return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-trial-visible');
+		switch (nextPhase.$) {
+			case 'TrialPhase':
+				if (nextPhase.a.$ === 'Just') {
+					if (nextPhase.a.a.$ === 'Visible') {
+						var _v1 = nextPhase.a.a;
+						return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-trial-visible');
+					} else {
+						var _v2 = nextPhase.a.a;
+						return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-trial-hidden');
+					}
 				} else {
-					var _v2 = nextPhase.a.a;
-					return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-trial-hidden');
+					var _v3 = nextPhase.a;
+					return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-trial');
 				}
-			} else {
-				var _v3 = nextPhase.a;
-				return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-trial');
-			}
-		} else {
-			return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-resting');
+			case 'RestingPhase':
+				return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-resting');
+			default:
+				return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-after-experiment');
 		}
 	});
 var $elm$svg$Svg$g = $elm$svg$Svg$trustedNode('g');
@@ -24482,6 +24488,13 @@ var $author$project$View$readinessAfterRestingText = function (model) {
 			A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.participant.after-resting.back-to-trials'))
 		]);
 };
+var $author$project$View$startAfterExperimentText = function (model) {
+	return _List_fromArray(
+		[
+			$author$project$View$subTitle(
+			A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.participant.after-trial.after-experiment-next'))
+		]);
+};
 var $author$project$View$startNextTrainingHiddenTrialsText = function (model) {
 	return _List_fromArray(
 		[
@@ -24556,6 +24569,15 @@ var $author$project$View$startTrainingHiddenTrialsText = function (model) {
 					_List_Nil,
 					A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.participant.pre-trials.training-trial-hidden-2'))
 				]))
+		]);
+};
+var $author$project$View$waitAfterExperimentText = function (model) {
+	return _List_fromArray(
+		[
+			$author$project$View$title(
+			A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.participant.after-trial.wait-after-experiment-title')),
+			$author$project$View$subTitle(
+			A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.participant.after-trial.wait-after-experiment-sub-title'))
 		]);
 };
 var $author$project$View$waitRestingText = function (model) {
@@ -24852,76 +24874,103 @@ var $author$project$View$connectedParticipantView = F3(
 					if (training.$ === 'Just') {
 						if (training.a.$ === 'Visible') {
 							var _v6 = training.a;
-							if (nextPhase.$ === 'TrialPhase') {
-								if (nextPhase.a.$ === 'Just') {
-									if (nextPhase.a.a.$ === 'Visible') {
-										var _v8 = nextPhase.a.a;
-										return _Utils_Tuple2(
-											model.meta.trainingTrialHasQuestionnaires ? _List_Nil : _List_fromArray(
-												[
-													_Utils_Tuple2(
-													function ($) {
-														return $.ready;
-													}(
-														A2($author$project$Utils$getPProp, p, model.players)),
-													A3(
-														$author$project$View$participantStartPhaseView,
-														model,
-														false,
-														$author$project$View$startNextTrainingVisibleTrialsText(model)))
-												]),
-											$author$project$View$waitTrainingTrialText(model));
+							switch (nextPhase.$) {
+								case 'TrialPhase':
+									if (nextPhase.a.$ === 'Just') {
+										if (nextPhase.a.a.$ === 'Visible') {
+											var _v8 = nextPhase.a.a;
+											return _Utils_Tuple2(
+												model.meta.trainingTrialHasQuestionnaires ? _List_Nil : _List_fromArray(
+													[
+														_Utils_Tuple2(
+														function ($) {
+															return $.ready;
+														}(
+															A2($author$project$Utils$getPProp, p, model.players)),
+														A3(
+															$author$project$View$participantStartPhaseView,
+															model,
+															false,
+															$author$project$View$startNextTrainingVisibleTrialsText(model)))
+													]),
+												$author$project$View$waitTrainingTrialText(model));
+										} else {
+											var _v9 = nextPhase.a.a;
+											return _Utils_Tuple2(
+												_List_fromArray(
+													[
+														_Utils_Tuple2(
+														function ($) {
+															return $.ready;
+														}(
+															A2($author$project$Utils$getPProp, p, model.players)),
+														A3(
+															$author$project$View$participantStartPhaseView,
+															model,
+															false,
+															$author$project$View$startTrainingHiddenTrialsText(model)))
+													]),
+												$author$project$View$waitTrainingTrialText(model));
+										}
 									} else {
-										var _v9 = nextPhase.a.a;
-										return _Utils_Tuple2(
-											_List_fromArray(
-												[
-													_Utils_Tuple2(
-													function ($) {
-														return $.ready;
-													}(
-														A2($author$project$Utils$getPProp, p, model.players)),
-													A3(
-														$author$project$View$participantStartPhaseView,
-														model,
-														false,
-														$author$project$View$startTrainingHiddenTrialsText(model)))
-												]),
-											$author$project$View$waitTrainingTrialText(model));
-									}
-								} else {
-									var _v10 = nextPhase.a;
-									return _Utils_Tuple2(
-										_List_fromArray(
-											[
-												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
-											]),
-										_List_Nil);
-								}
-							} else {
-								return _Utils_Tuple2(
-									_List_fromArray(
-										[
-											_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
-										]),
-									_List_Nil);
-							}
-						} else {
-							var _v11 = training.a;
-							if (nextPhase.$ === 'TrialPhase') {
-								if (nextPhase.a.$ === 'Just') {
-									if (nextPhase.a.a.$ === 'Visible') {
-										var _v13 = nextPhase.a.a;
+										var _v10 = nextPhase.a;
 										return _Utils_Tuple2(
 											_List_fromArray(
 												[
 													_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
 												]),
 											_List_Nil);
+									}
+								case 'RestingPhase':
+									return _Utils_Tuple2(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+											]),
+										_List_Nil);
+								default:
+									return _Utils_Tuple2(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+											]),
+										_List_Nil);
+							}
+						} else {
+							var _v11 = training.a;
+							switch (nextPhase.$) {
+								case 'TrialPhase':
+									if (nextPhase.a.$ === 'Just') {
+										if (nextPhase.a.a.$ === 'Visible') {
+											var _v13 = nextPhase.a.a;
+											return _Utils_Tuple2(
+												_List_fromArray(
+													[
+														_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+													]),
+												_List_Nil);
+										} else {
+											var _v14 = nextPhase.a.a;
+											return _Utils_Tuple2(
+												model.meta.trainingTrialHasQuestionnaires ? _List_Nil : _List_fromArray(
+													[
+														_Utils_Tuple2(
+														function ($) {
+															return $.ready;
+														}(
+															A2($author$project$Utils$getPProp, p, model.players)),
+														A3(
+															$author$project$View$participantStartPhaseView,
+															model,
+															false,
+															$author$project$View$startNextTrainingHiddenTrialsText(model)))
+													]),
+												$author$project$View$waitTrainingTrialText(model));
+										}
 									} else {
-										var _v14 = nextPhase.a.a;
+										var _v15 = nextPhase.a;
 										return _Utils_Tuple2(
-											model.meta.trainingTrialHasQuestionnaires ? _List_Nil : _List_fromArray(
+											_List_fromArray(
 												[
 													_Utils_Tuple2(
 													function ($) {
@@ -24932,68 +24981,74 @@ var $author$project$View$connectedParticipantView = F3(
 														$author$project$View$participantStartPhaseView,
 														model,
 														false,
-														$author$project$View$startNextTrainingHiddenTrialsText(model)))
+														$author$project$View$startRealTrialsText(model)))
 												]),
-											$author$project$View$waitTrainingTrialText(model));
+											$author$project$View$waitTrialText(model));
 									}
-								} else {
-									var _v15 = nextPhase.a;
+								case 'RestingPhase':
 									return _Utils_Tuple2(
 										_List_fromArray(
 											[
-												_Utils_Tuple2(
-												function ($) {
-													return $.ready;
-												}(
-													A2($author$project$Utils$getPProp, p, model.players)),
-												A3(
-													$author$project$View$participantStartPhaseView,
-													model,
-													false,
-													$author$project$View$startRealTrialsText(model)))
+												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
 											]),
-										$author$project$View$waitTrialText(model));
-								}
-							} else {
-								return _Utils_Tuple2(
-									_List_fromArray(
-										[
-											_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
-										]),
-									_List_Nil);
+										_List_Nil);
+								default:
+									return _Utils_Tuple2(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+											]),
+										_List_Nil);
 							}
 						}
 					} else {
-						if (nextPhase.$ === 'TrialPhase') {
-							if (nextPhase.a.$ === 'Just') {
+						switch (nextPhase.$) {
+							case 'TrialPhase':
+								if (nextPhase.a.$ === 'Just') {
+									return _Utils_Tuple2(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+											]),
+										_List_Nil);
+								} else {
+									var _v17 = nextPhase.a;
+									return _Utils_Tuple2(
+										_List_Nil,
+										$author$project$View$waitTrialText(model));
+								}
+							case 'RestingPhase':
 								return _Utils_Tuple2(
 									_List_fromArray(
 										[
-											_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+											_Utils_Tuple2(
+											function ($) {
+												return $.ready;
+											}(
+												A2($author$project$Utils$getPProp, p, model.players)),
+											A3(
+												$author$project$View$participantStartPhaseView,
+												model,
+												false,
+												$author$project$View$startRestingText(model)))
 										]),
-									_List_Nil);
-							} else {
-								var _v17 = nextPhase.a;
+									$author$project$View$waitRestingText(model));
+							default:
 								return _Utils_Tuple2(
-									_List_Nil,
-									$author$project$View$waitTrialText(model));
-							}
-						} else {
-							return _Utils_Tuple2(
-								_List_fromArray(
-									[
-										_Utils_Tuple2(
-										function ($) {
-											return $.ready;
-										}(
-											A2($author$project$Utils$getPProp, p, model.players)),
-										A3(
-											$author$project$View$participantStartPhaseView,
-											model,
-											false,
-											$author$project$View$startRestingText(model)))
-									]),
-								$author$project$View$waitRestingText(model));
+									_List_fromArray(
+										[
+											_Utils_Tuple2(
+											function ($) {
+												return $.ready;
+											}(
+												A2($author$project$Utils$getPProp, p, model.players)),
+											A3(
+												$author$project$View$participantStartPhaseView,
+												model,
+												false,
+												$author$project$View$startAfterExperimentText(model)))
+										]),
+									$author$project$View$waitAfterExperimentText(model));
 						}
 					}
 				}();
@@ -25677,4 +25732,4 @@ var $author$project$Main$main = $elm$browser$Browser$application(
 		}
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.2"},"types":{"message":"Types.Msg","aliases":{"Types.Meta":{"args":[],"type":"{ slots : Types.Slots, pids : Types.Pids, uuid : Types.Uuid, lang : String.String, trainingTrialHasQuestionnaires : Basics.Bool }"},"Types.PProps":{"args":["a"],"type":"{ p0 : a, p1 : a }"},"Types.Pids":{"args":[],"type":"Types.PProps (Maybe.Maybe String.String)"},"Types.Player":{"args":[],"type":"{ x : Basics.Float, button : Basics.Bool, ready : Basics.Bool, clicked : Basics.Bool }"},"Types.Players":{"args":[],"type":"Types.PProps Types.Player"},"Types.QAfterExperiment":{"args":[],"type":"{ partnerTraits : Types.PProps Basics.Bool, personalityAfter : Types.PProps Basics.Bool, strategy : Types.PProps Basics.Bool }"},"Types.QAfterTrial":{"args":[],"type":"{ experience : Types.PProps Basics.Bool }"},"Types.QPreExperiment":{"args":[],"type":"{ person : Types.PProps Basics.Bool, personalityPre : Types.PProps Basics.Bool }"},"Types.Slots":{"args":[],"type":"{ experimenter : Maybe.Maybe Types.Uuid, p0 : Maybe.Maybe Types.Uuid, p1 : Maybe.Maybe Types.Uuid }"},"Types.TrialClick":{"args":[],"type":"Basics.Bool"},"Types.Uuid":{"args":[],"type":"String.String"},"Types.Duration":{"args":[],"type":"Basics.Int"},"Types.PersonalityConfig":{"args":[],"type":"Maybe.Maybe Basics.Int"},"Types.SpaceConfig":{"args":[],"type":"{ envWidth : Basics.Float, avatarWidth : Basics.Float, staticWidth : Basics.Float, static0 : Basics.Float, static1 : Basics.Float, shadowDelta0 : Basics.Float, shadowDelta1 : Basics.Float, training : Maybe.Maybe Types.Training }"},"Types.TrialClicks":{"args":[],"type":"Types.PProps Types.TrialClick"},"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"}},"unions":{"Types.Msg":{"args":[],"tags":{"NoOp":[],"Errored":["String.String"],"RecvMeta":["Result.Result Http.Error Types.Meta"],"RecvTranslations":["Result.Result Http.Error I18Next.Translations"],"SocketState":["Result.Result String.String Basics.Bool"],"RecvSocketMsg":["Result.Result Json.Decode.Error Types.SocketMsg"],"SelectSlot":["Types.Slot"],"RecvSlots":["Result.Result Http.Error (Types.ApiResponse Types.Slots)"],"PidInput":["String.String"],"RecvPids":["Result.Result Http.Error (Types.ApiResponse Types.Pids)"],"SubmitPid":[],"SubmitStartPhase":[],"RecvPhase":["Result.Result Http.Error (Types.ApiResponse Types.Phase)"],"SubmitReady":[],"RecvPlayers":["Result.Result Http.Error (Types.ApiResponse Types.Players)"],"PersonalityInput":["Basics.Int","Basics.Int"],"PersonInputAge":["String.String"],"PersonSelectGender":["Maybe.Maybe String.String"],"PersonGenderDropdownMsg":["Dropdown.Msg String.String"],"PersonSelectNationality":["Maybe.Maybe String.String"],"PersonNationalityDropdownMsg":["Dropdown.Msg String.String"],"SubmitPerson":[],"RecvPersons":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityPre":[],"RecvPersonalitiesPre":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityAfter":[],"RecvPersonalitiesAfter":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"ExperienceClickPresenceInput":["Basics.Int"],"ExperienceClickConfidenceInput":["Basics.Int"],"ExperienceAbsenceFrequencyInput":["Basics.Int"],"ExperienceAbsenceStrengthInput":["Basics.Int"],"SubmitExperience":["Types.TrialClick"],"RecvExperiences":["Result.Result Http.Error (Types.ApiResponse Types.QAfterTrial)"],"PartnerTraitsInput":["Types.Trait","Basics.Float"],"SubmitPartnerTraits":[],"RecvPartnerTraits":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"StrategySelfInput":["String.String"],"StrategyOtherInput":["String.String"],"StrategyCommentInput":["String.String"],"SubmitStrategy":[],"RecvStrategies":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"]}},"Types.ApiResponse":{"args":["a"],"tags":{"BadStatus":["Basics.Int","Feedback.Feedback"],"GoodStatus":["a"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Json.Decode.Error":{"args":[],"tags":{"Field":["String.String","Json.Decode.Error"],"Index":["Basics.Int","Json.Decode.Error"],"OneOf":["List.List Json.Decode.Error"],"Failure":["String.String","Json.Decode.Value"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dropdown.Msg":{"args":["item"],"tags":{"OnDomFocus":["Result.Result Browser.Dom.Error ()"],"OnBlur":[],"OnClickPrompt":[],"OnSelect":["item"],"OnFilterTyped":["String.String"],"OnKeyDown":["Dropdown.Key"],"OnClickOutside":[]}},"Types.Phase":{"args":[],"tags":{"PreExperiment":["Types.QPreExperiment","Types.SpaceConfig","Types.PersonalityConfig"],"PreFirstResting":[],"Resting":["Types.Duration"],"PreTrials":[],"Trial":["Types.Duration","Types.SpaceConfig"],"AfterResting":[],"AfterTrial":["Maybe.Maybe Types.Training","Types.NextPhase","Types.TrialClicks","Types.QAfterTrial"],"AfterExperiment":["Types.QAfterExperiment","Types.PersonalityConfig"],"End":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Types.Slot":{"args":[],"tags":{"Experimenter":[],"Participant":["Types.P"]}},"Types.SocketMsg":{"args":[],"tags":{"SocketMsgError":["String.String"],"SocketMsgPhase":["Types.Phase"],"SocketMsgMeta":["Types.Meta"],"SocketMsgPlayers":["Types.Players"]}},"String.String":{"args":[],"tags":{"String":[]}},"Types.Trait":{"args":[],"tags":{"Extraversion":[],"Neuroticism":[],"Openness":[],"Agreeableness":[],"Conscientiousness":[]}},"I18Next.Translations":{"args":[],"tags":{"Translations":["Dict.Dict String.String String.String"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Feedback.Feedback":{"args":[],"tags":{"Feedback":["{ known : Dict.Dict String.String Feedback.Item, unknown : String.String }"]}},"Dropdown.Key":{"args":[],"tags":{"ArrowDown":[],"ArrowUp":[],"Enter":[],"Esc":[]}},"List.List":{"args":["a"],"tags":{}},"Types.NextPhase":{"args":[],"tags":{"TrialPhase":["Maybe.Maybe Types.Training"],"RestingPhase":[]}},"Types.P":{"args":[],"tags":{"P0":[],"P1":[]}},"Types.Training":{"args":[],"tags":{"Visible":[],"Hidden":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Feedback.Item":{"args":[],"tags":{"Error":["String.String"],"Success":["String.String"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.2"},"types":{"message":"Types.Msg","aliases":{"Types.Meta":{"args":[],"type":"{ slots : Types.Slots, pids : Types.Pids, uuid : Types.Uuid, lang : String.String, trainingTrialHasQuestionnaires : Basics.Bool }"},"Types.PProps":{"args":["a"],"type":"{ p0 : a, p1 : a }"},"Types.Pids":{"args":[],"type":"Types.PProps (Maybe.Maybe String.String)"},"Types.Player":{"args":[],"type":"{ x : Basics.Float, button : Basics.Bool, ready : Basics.Bool, clicked : Basics.Bool }"},"Types.Players":{"args":[],"type":"Types.PProps Types.Player"},"Types.QAfterExperiment":{"args":[],"type":"{ partnerTraits : Types.PProps Basics.Bool, personalityAfter : Types.PProps Basics.Bool, strategy : Types.PProps Basics.Bool }"},"Types.QAfterTrial":{"args":[],"type":"{ experience : Types.PProps Basics.Bool }"},"Types.QPreExperiment":{"args":[],"type":"{ person : Types.PProps Basics.Bool, personalityPre : Types.PProps Basics.Bool }"},"Types.Slots":{"args":[],"type":"{ experimenter : Maybe.Maybe Types.Uuid, p0 : Maybe.Maybe Types.Uuid, p1 : Maybe.Maybe Types.Uuid }"},"Types.TrialClick":{"args":[],"type":"Basics.Bool"},"Types.Uuid":{"args":[],"type":"String.String"},"Types.Duration":{"args":[],"type":"Basics.Int"},"Types.PersonalityConfig":{"args":[],"type":"Maybe.Maybe Basics.Int"},"Types.SpaceConfig":{"args":[],"type":"{ envWidth : Basics.Float, avatarWidth : Basics.Float, staticWidth : Basics.Float, static0 : Basics.Float, static1 : Basics.Float, shadowDelta0 : Basics.Float, shadowDelta1 : Basics.Float, training : Maybe.Maybe Types.Training }"},"Types.TrialClicks":{"args":[],"type":"Types.PProps Types.TrialClick"},"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"}},"unions":{"Types.Msg":{"args":[],"tags":{"NoOp":[],"Errored":["String.String"],"RecvMeta":["Result.Result Http.Error Types.Meta"],"RecvTranslations":["Result.Result Http.Error I18Next.Translations"],"SocketState":["Result.Result String.String Basics.Bool"],"RecvSocketMsg":["Result.Result Json.Decode.Error Types.SocketMsg"],"SelectSlot":["Types.Slot"],"RecvSlots":["Result.Result Http.Error (Types.ApiResponse Types.Slots)"],"PidInput":["String.String"],"RecvPids":["Result.Result Http.Error (Types.ApiResponse Types.Pids)"],"SubmitPid":[],"SubmitStartPhase":[],"RecvPhase":["Result.Result Http.Error (Types.ApiResponse Types.Phase)"],"SubmitReady":[],"RecvPlayers":["Result.Result Http.Error (Types.ApiResponse Types.Players)"],"PersonalityInput":["Basics.Int","Basics.Int"],"PersonInputAge":["String.String"],"PersonSelectGender":["Maybe.Maybe String.String"],"PersonGenderDropdownMsg":["Dropdown.Msg String.String"],"PersonSelectNationality":["Maybe.Maybe String.String"],"PersonNationalityDropdownMsg":["Dropdown.Msg String.String"],"SubmitPerson":[],"RecvPersons":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityPre":[],"RecvPersonalitiesPre":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityAfter":[],"RecvPersonalitiesAfter":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"ExperienceClickPresenceInput":["Basics.Int"],"ExperienceClickConfidenceInput":["Basics.Int"],"ExperienceAbsenceFrequencyInput":["Basics.Int"],"ExperienceAbsenceStrengthInput":["Basics.Int"],"SubmitExperience":["Types.TrialClick"],"RecvExperiences":["Result.Result Http.Error (Types.ApiResponse Types.QAfterTrial)"],"PartnerTraitsInput":["Types.Trait","Basics.Float"],"SubmitPartnerTraits":[],"RecvPartnerTraits":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"StrategySelfInput":["String.String"],"StrategyOtherInput":["String.String"],"StrategyCommentInput":["String.String"],"SubmitStrategy":[],"RecvStrategies":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"]}},"Types.ApiResponse":{"args":["a"],"tags":{"BadStatus":["Basics.Int","Feedback.Feedback"],"GoodStatus":["a"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Json.Decode.Error":{"args":[],"tags":{"Field":["String.String","Json.Decode.Error"],"Index":["Basics.Int","Json.Decode.Error"],"OneOf":["List.List Json.Decode.Error"],"Failure":["String.String","Json.Decode.Value"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dropdown.Msg":{"args":["item"],"tags":{"OnDomFocus":["Result.Result Browser.Dom.Error ()"],"OnBlur":[],"OnClickPrompt":[],"OnSelect":["item"],"OnFilterTyped":["String.String"],"OnKeyDown":["Dropdown.Key"],"OnClickOutside":[]}},"Types.Phase":{"args":[],"tags":{"PreExperiment":["Types.QPreExperiment","Types.SpaceConfig","Types.PersonalityConfig"],"PreFirstResting":[],"Resting":["Types.Duration"],"PreTrials":[],"Trial":["Types.Duration","Types.SpaceConfig"],"AfterResting":[],"AfterTrial":["Maybe.Maybe Types.Training","Types.NextPhase","Types.TrialClicks","Types.QAfterTrial"],"AfterExperiment":["Types.QAfterExperiment","Types.PersonalityConfig"],"End":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Types.Slot":{"args":[],"tags":{"Experimenter":[],"Participant":["Types.P"]}},"Types.SocketMsg":{"args":[],"tags":{"SocketMsgError":["String.String"],"SocketMsgPhase":["Types.Phase"],"SocketMsgMeta":["Types.Meta"],"SocketMsgPlayers":["Types.Players"]}},"String.String":{"args":[],"tags":{"String":[]}},"Types.Trait":{"args":[],"tags":{"Extraversion":[],"Neuroticism":[],"Openness":[],"Agreeableness":[],"Conscientiousness":[]}},"I18Next.Translations":{"args":[],"tags":{"Translations":["Dict.Dict String.String String.String"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Feedback.Feedback":{"args":[],"tags":{"Feedback":["{ known : Dict.Dict String.String Feedback.Item, unknown : String.String }"]}},"Dropdown.Key":{"args":[],"tags":{"ArrowDown":[],"ArrowUp":[],"Enter":[],"Esc":[]}},"List.List":{"args":["a"],"tags":{}},"Types.NextPhase":{"args":[],"tags":{"TrialPhase":["Maybe.Maybe Types.Training"],"RestingPhase":[],"AfterExperimentPhase":[]}},"Types.P":{"args":[],"tags":{"P0":[],"P1":[]}},"Types.Training":{"args":[],"tags":{"Visible":[],"Hidden":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Feedback.Item":{"args":[],"tags":{"Error":["String.String"],"Success":["String.String"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));

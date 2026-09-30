@@ -198,6 +198,9 @@ nextPhaseHelp p =
         "resting" ->
             D.succeed RestingPhase
 
+        "after_experiment" ->
+            D.succeed AfterExperimentPhase
+
         _ ->
             D.fail <| "Trying to decode NextPhase, but value " ++ p ++ " is not supported"
 

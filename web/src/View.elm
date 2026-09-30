@@ -611,6 +611,9 @@ connectedParticipantView p model phase =
                                 RestingPhase ->
                                     ( [ ( False, errorPhaseTransitionText ) ], [] )
 
+                                AfterExperimentPhase ->
+                                    ( [ ( False, errorPhaseTransitionText ) ], [] )
+
                         Just Hidden ->
                             case nextPhase of
                                 TrialPhase (Just Visible) ->
@@ -646,6 +649,9 @@ connectedParticipantView p model phase =
                                 RestingPhase ->
                                     ( [ ( False, errorPhaseTransitionText ) ], [] )
 
+                                AfterExperimentPhase ->
+                                    ( [ ( False, errorPhaseTransitionText ) ], [] )
+
                         Nothing ->
                             case nextPhase of
                                 TrialPhase (Just _) ->
@@ -662,6 +668,14 @@ connectedParticipantView p model phase =
                                         )
                                       ]
                                     , waitRestingText model
+                                    )
+
+                                AfterExperimentPhase ->
+                                    ( [ ( .ready (Utils.getPProp p model.players)
+                                        , participantStartPhaseView model False (startAfterExperimentText model)
+                                        )
+                                      ]
+                                    , waitAfterExperimentText model
                                     )
 
                 maybeParticipantExperience =
@@ -2002,6 +2016,16 @@ waitTrialText model =
 waitRestingText model =
     [ title (t model.translations "connected.participant.after-trial.wait-resting-title")
     , subTitle (t model.translations "connected.participant.after-trial.wait-resting-sub-title")
+    ]
+
+
+startAfterExperimentText model =
+    [ subTitle (t model.translations "connected.participant.after-trial.after-experiment-next") ]
+
+
+waitAfterExperimentText model =
+    [ title (t model.translations "connected.participant.after-trial.wait-after-experiment-title")
+    , subTitle (t model.translations "connected.participant.after-trial.wait-after-experiment-sub-title")
     ]
 
 

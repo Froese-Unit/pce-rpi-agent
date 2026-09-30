@@ -172,6 +172,7 @@ type P
 type NextPhase
     = TrialPhase (Maybe Training)
     | RestingPhase
+    | AfterExperimentPhase
 
 
 type alias TrialClick =
