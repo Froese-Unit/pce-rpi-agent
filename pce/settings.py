@@ -33,7 +33,7 @@ TEST = {
 LANGUAGE = "en"
 PERSONALITY_QUESTIONS_LIMIT = None
 # PERSONALITY_QUESTIONS_LIMIT = 3
-# 20260904 AH: ThisPCE-AI doesn't use the Big-5/personality or partner-traits
+# 20260904 AH: This PCE-agent project doesn't use the Big-5/personality or partner-traits
 # questionnaires (the pre-experiment one is already separately hardcoded off
 # in phase.py's PreExperiment.questionnaires_data(), 20260721). These 3
 # switches turn off the rest: the per-trial "experience"/PAS questionnaire
