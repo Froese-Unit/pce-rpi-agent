@@ -1,15 +1,13 @@
-# settings.py -- all the experiment's tunable config, in ONE place. Not a
-# script you run (no main()) -- every other file in pce/ does
-# `from pce import settings as st` and reads values off it (e.g.
-# st.AGENT_TAU_SECS, st.ENV_WIDTH). Nothing here executes any experiment
-# logic itself; it just defines numbers/strings/switches that main.py,
+# settings.py is the experiment's tunable parameters. Every other file in pce/ does
+# `from pce import settings as st` and reads values off it (e.g. st.AGENT_TAU_SECS, st.ENV_WIDTH).
+# This script defines numbers/strings/switches that main.py, 
 # phase.py, player.py, game.py etc. all read from.
-#
-# How it fits the whole experiment: this is the "control panel." If you want
+
+# This script is kind of like a control panel. If you want
 # to change how long a trial lasts, which agent condition runs, how fast the
 # agent moves, how big the ring is, etc., you change a value here rather than
 # editing the logic in phase.py/player.py.
-#
+
 import glob  # AGENT 20260816: for AGENT_REPLAY_CONTACT_POOL below
 
 # REFRESH RATES
@@ -35,7 +33,7 @@ TEST = {
 LANGUAGE = "en"
 PERSONALITY_QUESTIONS_LIMIT = None
 # PERSONALITY_QUESTIONS_LIMIT = 3
-# 20260904 AH: PCE-AI doesn't use the Big-5/personality or partner-traits
+# 20260904 AH: ThisPCE-AI doesn't use the Big-5/personality or partner-traits
 # questionnaires (the pre-experiment one is already separately hardcoded off
 # in phase.py's PreExperiment.questionnaires_data(), 20260721). These 3
 # switches turn off the rest: the per-trial "experience"/PAS questionnaire
@@ -51,7 +49,6 @@ NUM_TRAINING_TRIALS = {
     "hidden": 1,
 }
 LOGGING_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
-
 
 # INPUT/OUPUT SETTINGS
 MOTOR_EXCEL_0 = 0
@@ -78,9 +75,9 @@ ROTARY_MAX_STEPS = 500
 READINESS_PRESS_DURATION_SECS = 1
 
 # 20260813 AH -- KEYBOARD TESTING ONLY (--tui with --mockpins), no effect on the
-# real rotary encoder. Rotary ticks applied per arrow-key press in game.py's
+# real rotary encoder. Rotary ticks applied per keyboard press in game.py's
 # Tui.action_move(). At the original 10, one press = 4.7 units, so a ~15/s key
-# repeat gives ~70 units/s vs. the agent's AGENT_EXPLORE_SPEED of 280 -- you can
+# repeat gives ~70 units/s vs. the agent's AGENT_EXPLORE_SPEED of 280, you can
 # never keep up, never hold contact, and the agent never engages. 40 gives
 # ~18.8 units/press (~280 units/s at 15 presses/s), i.e. parity with the agent.
 TUI_MOVE_TICKS = 40
@@ -97,7 +94,6 @@ SIGNAL_DURATION_SECS = 0.01
 PIN_MODALITY_VIBRATION_ONLY = 17
 # This pin is the one grounded by the vibration icon side of the switch. Pulled-up.
 PIN_MODALITY_SOUND_ONLY = 4
-
 
 # ENVIRONMENT SETTINGS
 ENV_WIDTH = 600  # WIDTH of the environment
@@ -129,7 +125,6 @@ AGENT_PLAYER_INDEX = 1  # which slot is the agent (1 = controller 2 / red avatar
 # OLD (20260716) position-replay prototype -- superseded 20260807 by the
 # contact-memory kernel below; path is also stale after the 07-30 re-import.
 # AGENT_REPLAY_CSV = "../../sample-data/pce02230809/trials/DT=2023-08-09_03-33-28_DATA=controllers_P0=9874_P1=8057_TRIAL=0.csv"
-
 
 # =====================================================================
 # THE AGENTS (proposal.md §5.2)
