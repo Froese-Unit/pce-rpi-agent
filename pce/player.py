@@ -193,9 +193,12 @@ class Player:
             # Same ambiguous avatar/shadow/static signal the human has.
             c_t = 1 if self.controller.feedback else 0
 
-            # (static-object trap, known since 2026-08-16 -- see step 3 below
-            # for the fix and why the original "only count the OTHER player"
-            # approach was reverted.)
+            # KNOWN BUG (static-object trap, 2026-08-16): the agent can get
+            # stuck circling its own static object, since "return to where I
+            # last touched something" always re-finds it (it never moves).
+            # A fix (only count the OTHER player, not the static object, for
+            # x_last_contact) was verified working but reverted -- see
+            # lab-notebook.md 2026-08-16 for the tried code and why.
         else:
             # Condition 2 (non_contingent -- the only remaining value after
             # "baseline"/"contingent" above, no further check needed). Reads
@@ -217,23 +220,8 @@ class Player:
             self.V += (dt / st.AGENT_TAU_SECS) * (c_t - self.V)
 
         # --- step 3: if contact just broke, store where I am -----------------
-        # FIX 2026-09-30 (static-object trap): don't let x_last_contact become
-        # the agent's own static object's position -- that's what was causing
-        # return -> re-touch static -> break -> return loops. Can't fix this by
-        # asking "which object caused the break" (c_t is deliberately merged
-        # across avatar/shadow/static, proposal.md §5.4, and the non-contingent
-        # replay's c_t has no such distinction to give even if we wanted it --
-        # this is why the earlier "only count the OTHER player" fix was
-        # reverted, it only worked for the contingent condition). Instead,
-        # guard the WRITE using only the agent's own known, fixed static-object
-        # position -- this works identically in all 3 conditions.
         if self._prev_c == 1 and c_t == 0:
-            width = st.ENV_WIDTH
-            dist_to_static = abs((self.static.x - self.avatar.x + width / 2) % width - width / 2)
-            if dist_to_static > (st.STATIC_WIDTH + st.AVATAR_WIDTH) / 2:
-                self.x_last_contact = self.avatar.x
-            # else: leave x_last_contact unchanged -- currently sitting on my
-            # own static object, don't let "return" send me back onto it.
+            self.x_last_contact = self.avatar.x
         self._prev_c = c_t
 
         # --- step 4: explore/engage switch ------------------------------------
