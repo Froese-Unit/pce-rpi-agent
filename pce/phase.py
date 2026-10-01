@@ -510,6 +510,18 @@ class Trial(Phase):
             # Maybe create another box.Signaller or two.
             #
             if active and not p.controller.feedback:
+                # DEBUG (kept commented out, not deleted): logs exactly which
+                # overlap (own static / other's avatar / other's shadow) just
+                # turned player p's buzz on. Used 2026-09-30/10-01 to diagnose
+                # and confirm the own-static-object buzz issue was a
+                # visualization bug, not this logic. Uncomment to reuse.
+                # logger.info(
+                #     "BUZZ ON  player=%d  own_static=%s  other_avatar=%s  other_shadow=%s",
+                #     p.index,
+                #     overlaps(p.avatar, p.static),
+                #     overlaps(p.avatar, np.avatar),
+                #     overlaps(p.avatar, np.shadow),
+                # )
              #   self.box.signal.trial()
                 if p.index == 0:
                     st.MOTOR_EXCEL_0 = st.MOTOR_ON #Shows that motor is on
