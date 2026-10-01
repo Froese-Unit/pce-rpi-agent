@@ -48,7 +48,7 @@
                 "agree-little": "Stimme eher zu",
                 "agree-strongly": "Stimme voll und ganz zu",
                 "thank-you": "Danke, dass Sie die Fragen beantwortet haben!",
-                "next-do": "XXXNow, while experimenters are still setting up your cap and electrodes, please:",
+                "next-do": "XXXNow, while experimenters are finishing the setup, please:",
                 "read-instructions-1": "XXXCarefully read the ",
                 "read-instructions-2": "XXX instructions you were given on paper at the beginning of the experiment",
                 "ask-your-questions": "XXXIf you have any questions, ask the experimenters"
@@ -413,7 +413,10 @@
                 "resting-relax": "XXXTake a few moments to relax",
                 "resting-comfortable": "XXXFind a comfortable position with your hands on the table",
                 "wait-resting-title": "XXXPlease keep your eyes closed and your hands on the table",
-                "wait-resting-sub-title": "XXXThe Resting phase will start in a few moments."
+                "wait-resting-sub-title": "XXXThe Resting phase will start in a few moments.",
+                "after-experiment-next": "XXXWe have now completed all the trials.",
+                "wait-after-experiment-title": "XXXPlease wait a moment",
+                "wait-after-experiment-sub-title": "XXXThe final questionnaires will start in a few moments."
             },
             "after-resting": {
                 "back-to-trials": "XXXWe are now going back to trials.",
@@ -445,8 +448,8 @@
             "start-next-phase": "XXXStart next phase",
             "duration": "XXXDuration: {{duration}} seconds",
             "pre-experiment": {
-                "title": "XXXPersonality questionnaire & EEG setup",
-                "instructions": "XXXParticipants should fill the personality questionnaire while the EEG caps and body electrodes are being set up. Once all is ready and the resting phase can start, move to next phase.",
+                "title": "XXXQuestionnaires and setup",
+                "instructions": "XXXParticipants should fill the questionnaire while the setup is being finished. Once all is ready and the resting phase can start, move to next phase.",
                 "person-questionnaire-done": "XXXPerson questionnaire completed",
                 "personality-questionnaire-done": "XXXPersonality questionnaire completed"
             },
@@ -474,6 +477,7 @@
                 "next-phase-trial-hidden": "XXXtest trial with hidden space",
                 "next-phase-trial": "XXXtrial",
                 "next-phase-resting": "XXXresting state",
+                "next-phase-after-experiment": "XXXpost-experiment questionnaire phase",
                 "questionnaire-completed": "XXXExperience questionnaire completed"
             },
             "after-resting": {

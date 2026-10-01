@@ -48,13 +48,13 @@
                 "agree-little": "Agree a little",
                 "agree-strongly": "Agree strongly",
                 "thank-you": "Thank you for filling the questionnaire.",
-                "next-do": "Now, while experimenters are still setting up your cap and electrodes, please:",
+                "next-do": "Now, while experimenters are finishing the setup, please:",
                 "read-instructions-1": "Carefully read the ",
                 "read-instructions-2": " instructions you were given on paper at the beginning of the experiment",
                 "ask-your-questions": "If you have any questions, ask the experimenters"
             },
             "person-questionnaire": {
-                "title": "Before we start, we would like to ask a few questions about you and your personality",
+                "title": "Before we start, we would like to ask a few questions about you",
                 "age": "How old are you?",
                 "gender": {
                     "question": "What is your gender?",
@@ -367,7 +367,7 @@
                 "nexd-do-1__todo": "TODO Get the number of training trials from pce/settings.py",
                 "training": "training",
                 "next-do-2": " trials.",
-                "instructions": "In these trials, you will first see the full virtual space, then it will be hidden. Try things out to understand how the controller works.",
+                "instructions": "In these trials, you will first see a visualization of your actions in the virtual space, then it will be hidden. Try things out to understand how the controller works.",
                 "training-title": "Training trial is about to start",
                 "training-wait": "Just a few moments, we are getting everything ready.",
                 "training-trial-again": "The next training trial is about to start.",
@@ -448,8 +448,8 @@
             "start-next-phase": "Start next phase",
             "duration": "Duration: {{duration}} seconds",
             "pre-experiment": {
-                "title": "Personality questionnaire & EEG setup",
-                "instructions": "Participants should fill the personality questionnaire while the EEG caps and body electrodes are being set up. Once all is ready and the resting phase can start, move to next phase.",
+                "title": "Questionnaires and setup",
+                "instructions": "Participants should fill the questionnaire while the setup is being finished. Once all is ready and the resting phase can start, move to next phase.",
                 "person-questionnaire-done": "Person questionnaire completed",
                 "personality-questionnaire-done": "Personality questionnaire completed"
             },
