@@ -1535,10 +1535,10 @@ spaceView config { p0, p1 } slot zoom =
             []
         , spacePlayerView config p0Color p0 p0ShowButton zoom
         , spaceShadowView config p0Color (p0.x + config.shadowDelta0) zoom
-        , spaceStaticView config p1Color config.static0 zoom -- this static is touchable by player 0, so the same color as the other stuff player 0 touches
+        , spaceStaticView config p0Color config.static0 zoom -- FIX 20261001: this is player 0's OWN static object -- color it by ownership (p0Color), matching the legend and how the avatar/shadow above are colored, not by who it buzzes
         , spacePlayerView config p1Color p1 p1ShowButton zoom
         , spaceShadowView config p1Color (p1.x + config.shadowDelta1) zoom
-        , spaceStaticView config p0Color config.static1 zoom -- this static is touchable by player 1, so the same color as the other stuff player 1 touches
+        , spaceStaticView config p1Color config.static1 zoom -- FIX 20261001: player 1's OWN static object -- same ownership-based coloring
         ]
 
 

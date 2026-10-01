@@ -20801,10 +20801,10 @@ var $author$project$View$spaceView = F4(
 					_List_Nil),
 					A5($author$project$View$spacePlayerView, config, $author$project$View$p0Color, p0, p0ShowButton, zoom),
 					A4($author$project$View$spaceShadowView, config, $author$project$View$p0Color, p0.x + config.shadowDelta0, zoom),
-					A4($author$project$View$spaceStaticView, config, $author$project$View$p1Color, config.static0, zoom),
+					A4($author$project$View$spaceStaticView, config, $author$project$View$p0Color, config.static0, zoom),
 					A5($author$project$View$spacePlayerView, config, $author$project$View$p1Color, p1, p1ShowButton, zoom),
 					A4($author$project$View$spaceShadowView, config, $author$project$View$p1Color, p1.x + config.shadowDelta1, zoom),
-					A4($author$project$View$spaceStaticView, config, $author$project$View$p0Color, config.static1, zoom)
+					A4($author$project$View$spaceStaticView, config, $author$project$View$p1Color, config.static1, zoom)
 				]));
 	});
 var $author$project$View$connectedExperimenterView = F2(
