@@ -382,6 +382,14 @@ class Trial(Phase):
 
     def start_tasks(self):
         logger.info("Trial: start_tasks")
+        # FIX 20261002: the logged motor_{0,1}_vibrate_software columns come from
+        # these module-level globals, which update_feedbacks() only changes on a
+        # transition and which were only reset in save() -- i.e. never after a
+        # (unsaved) training trial. A training trial ending mid-buzz therefore
+        # left the first main trial's column stuck ON until its first real
+        # contact (reproduced in a headless harness). Reset at every trial start.
+        st.MOTOR_EXCEL_0 = st.MOTOR_OFF
+        st.MOTOR_EXCEL_1 = st.MOTOR_OFF
         #shadow_side = 2 * randint(0, 1) - 1
         shadow_side = 1 #no more switching sides, from Leonardos PI
 
