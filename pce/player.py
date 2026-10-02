@@ -69,6 +69,14 @@ class Player:
         self._hold_anchor = None  # AGENT 20260915: fixed position "hold" jitters around, set fresh each time a hold begins (resets each trial, see init_motion())
         self._hold_elapsed = 0.0  # AGENT 20260915: seconds spent continuously holding so far (resets each trial, see init_motion())
         self._hold_cooldown_remaining = None  # AGENT 20260915: seconds left forcing explore after a capped hold (resets each trial, see init_motion())
+        # AGENT 20261002 (buzz-flicker fix, see settings.py AGENT_HOLD_JITTER_REDRAW_SECS):
+        self._move_dir = 1                # +1/-1, direction of the last explore/return step (the way "into" a contact)
+        self._hold_offset = 0.0           # current jitter offset around the hold anchor
+        self._hold_redraw_in = 0.0        # seconds until the jitter offset is redrawn
+        self._no_contact_s = 0.0          # seconds since c_t was last 1 (debounces the hold-timer reset)
+        self._contact_ref = None          # first position of the current contact run
+        self._contact_offset_sum = 0.0    # sum of (wrapped) offsets from _contact_ref over the run
+        self._contact_n = 0               # ticks in the current contact run
 
         # --- AGENT 20260816: per-tick traces for the saved trial CSV ------------
         # V/c_t/mode, saved by phase.py's Trial.save() (only for the agent -- see
@@ -227,14 +235,32 @@ class Player:
         # reverted, it only worked for the contingent condition). Instead,
         # guard the WRITE using only the agent's own known, fixed static-object
         # position -- this works identically in all 3 conditions.
-        if self._prev_c == 1 and c_t == 0:
-            width = st.ENV_WIDTH
-            dist_to_static = abs((self.static.x - self.avatar.x + width / 2) % width - width / 2)
+        #
+        # FIX 2026-10-02 (buzz flicker): x_last_contact is now the MIDDLE of the
+        # contact run that just ended (mean of the agent's own positions while
+        # c_t was 1), not the position at the instant it broke. The break point
+        # is by definition just OUTSIDE contact, so "return" used to park the
+        # agent on the contact edge (c_t = 0, ~20.2 units from a still
+        # participant) where any jitter flickered the buzz. A run's middle sits
+        # inside the contact zone. Still uses only the agent's own positions --
+        # nothing about the participant's objects is read.
+        width = st.ENV_WIDTH
+        if c_t == 1:
+            if self._prev_c == 0:
+                self._contact_ref = self.avatar.x
+                self._contact_offset_sum = 0.0
+                self._contact_n = 0
+            self._contact_offset_sum += (self.avatar.x - self._contact_ref + width / 2) % width - width / 2
+            self._contact_n += 1
+        elif self._prev_c == 1 and self._contact_n > 0:
+            contact_mid = (self._contact_ref + self._contact_offset_sum / self._contact_n) % width
+            dist_to_static = abs((self.static.x - contact_mid + width / 2) % width - width / 2)
             if dist_to_static > (st.STATIC_WIDTH + st.AVATAR_WIDTH) / 2:
-                self.x_last_contact = self.avatar.x
-            # else: leave x_last_contact unchanged -- currently sitting on my
+                self.x_last_contact = contact_mid
+            # else: leave x_last_contact unchanged -- that contact was on my
             # own static object, don't let "return" send me back onto it.
         self._prev_c = c_t
+        self._no_contact_s = 0.0 if c_t == 1 else self._no_contact_s + dt
 
         # --- step 4: explore/engage switch ------------------------------------
         engaging = self.V > st.AGENT_V_THRESHOLD
@@ -257,40 +283,74 @@ class Player:
         # continued contact) -- both numbers taken from the real 2023 contact/
         # gap rhythm (~0.25s / ~0.5s) already used elsewhere in this file, not
         # from today's exploratory pilot session (see lab-notebook.md 09-15).
+        #
+        # 2026-10-02: the cap clock (_hold_elapsed) now counts the whole contact
+        # EPISODE -- every tick while engaging and contact is present or was
+        # present within the last AGENT_HOLD_RESET_AFTER_SECS -- not just the
+        # ticks spent in "hold". Before, a participant standing at the contact
+        # edge made c_t flicker 1/0, each 0 reset the clock, and the cap took
+        # seconds to fire (a frozen-participant test saw the agent stay ~3-7 s).
         if self._hold_cooldown_remaining is not None:
             self._hold_cooldown_remaining -= dt
             if self._hold_cooldown_remaining <= 0:
                 self._hold_cooldown_remaining = None
             mode = "explore"
-        elif engaging and c_t == 1:
-            self._hold_elapsed += dt
-            if self._hold_elapsed > st.AGENT_MAX_HOLD_SECS:
+        else:
+            in_episode = c_t == 1 or self._no_contact_s <= st.AGENT_HOLD_RESET_AFTER_SECS
+            if engaging and in_episode:
+                self._hold_elapsed += dt
+            else:
+                self._hold_elapsed = 0.0
+            if engaging and self._hold_elapsed > st.AGENT_MAX_HOLD_SECS:
                 self._hold_cooldown_remaining = st.AGENT_HOLD_COOLDOWN_SECS
                 self._hold_elapsed = 0.0
                 mode = "explore"  # give up this tick, straight into cooldown
-            else:
+            elif engaging and c_t == 1:
                 mode = "hold"
-        elif engaging and self.x_last_contact is not None:
-            mode = "return"
-        else:
-            mode = "explore"
+            elif engaging and self.x_last_contact is not None:
+                mode = "return"
+            else:
+                mode = "explore"
 
         # --- step 5b: execute that mode ------------------------------------------
         if mode == "hold":
             # hold: jitter around a fixed anchor, not oscillate (data does not
             # support "probe" -- proposal.md §5.1 addendum (e)) and not a
             # steady crawl (towable -- see step 5a comment above).
+            #
+            # 2026-10-02 buzz-flicker fix: anchor a little FURTHER IN than where
+            # the hold began (a hold usually begins on the contact edge), so the
+            # whole +/-jitter band stays inside the contact zone; and redraw the
+            # offset only every AGENT_HOLD_JITTER_REDRAW_SECS instead of every
+            # tick, so the buzz is steady rather than stuttering at loop rate.
+            # "In" is judged from the agent's own travel since this contact
+            # began: before the middle of the contact zone it is the direction
+            # of travel; past the middle (e.g. a cooldown ended while the agent
+            # was crossing the far side) it is back the way it came.
             if self._hold_anchor is None:
-                self._hold_anchor = self.avatar.x  # first tick of this hold: anchor here
-            self.avatar.x = self._hold_anchor + uniform(
-                -st.AGENT_HOLD_JITTER, st.AGENT_HOLD_JITTER
-            )
+                zone_half = (st.STATIC_WIDTH + st.AVATAR_WIDTH) / 2
+                travelled = (self.avatar.x - self._contact_ref + st.ENV_WIDTH / 2) % st.ENV_WIDTH - st.ENV_WIDTH / 2
+                travel_dir = self._move_dir if travelled == 0 else (1 if travelled > 0 else -1)
+                inward = travel_dir if abs(travelled) < zone_half else -travel_dir
+                self._hold_anchor = self.avatar.x + inward * (
+                    st.AGENT_HOLD_JITTER + st.AGENT_HOLD_INWARD_MARGIN
+                )
+                self._hold_redraw_in = 0.0
+            self._hold_redraw_in -= dt
+            if self._hold_redraw_in <= 0:
+                self._hold_offset = uniform(-st.AGENT_HOLD_JITTER, st.AGENT_HOLD_JITTER)
+                self._hold_redraw_in = st.AGENT_HOLD_JITTER_REDRAW_SECS
+            self.avatar.x = self._hold_anchor + self._hold_offset
         elif mode == "return":
-            # return: head back toward where contact last broke (proposal.md
+            # return: head back toward the middle of the last contact (proposal.md
             # §5.1 addendum (f) -- V alone can't do this, needs x_last_contact).
-            self._hold_anchor = None
-            self._hold_elapsed = 0.0
-            self._step_toward(self.x_last_contact, st.AGENT_RETURN_SPEED * dt)
+            # The hold timer/anchor are only reset after contact has been gone
+            # for AGENT_HOLD_RESET_AFTER_SECS, so a one-tick dropout at the edge
+            # can't restart the AGENT_MAX_HOLD_SECS clock.
+            if self._no_contact_s > st.AGENT_HOLD_RESET_AFTER_SECS:
+                self._hold_anchor = None
+                self._hold_elapsed = 0.0
+            self._move_dir = self._step_toward(self.x_last_contact, st.AGENT_RETURN_SPEED * dt)
         else:
             # explore: sweep the ring, occasionally reversing direction.
             # PLACEHOLDER 20260907 AH -- memoryless (Poisson-style) reversal:
@@ -298,10 +358,12 @@ class Player:
             # flipping direction, giving randomized (not perfectly periodic)
             # intervals with that mean -- see settings.py for why this number
             # itself is a placeholder, not yet from the 2023 data.
-            self._hold_anchor = None
-            self._hold_elapsed = 0.0
+            if self._no_contact_s > st.AGENT_HOLD_RESET_AFTER_SECS:
+                self._hold_anchor = None
+                self._hold_elapsed = 0.0
             if random() < dt / st.AGENT_EXPLORE_REVERSAL_MEAN_SECS:
                 self._explore_direction *= -1
+            self._move_dir = self._explore_direction
             self.avatar.x += st.AGENT_EXPLORE_SPEED * self._explore_direction * dt
 
         # --- AGENT 20260813: watch the agent's internal state -----------------
@@ -324,16 +386,20 @@ class Player:
                 "#" * int(self.V * 40),  # quick visual bar for V
             )
 
-    def _step_toward(self, target: float, step_size: float) -> None:
+    def _step_toward(self, target: float, step_size: float) -> int:
         # AGENT: move at most `step_size` toward `target`, taking the shorter
         # way around the ring (the environment wraps -- see
-        # environment.wrap_around / Object.x's setter).
+        # environment.wrap_around / Object.x's setter). Returns the direction
+        # of travel (+1/-1), used to point a new hold "into" the contact.
         width = st.ENV_WIDTH
         delta = (target - self.avatar.x + width / 2) % width - width / 2
+        # already exactly on the target: no direction of travel, keep the last real one
+        direction = self._move_dir if delta == 0 else (1 if delta > 0 else -1)
         if abs(delta) <= step_size:
             self.avatar.x = target
         else:
-            self.avatar.x += step_size if delta > 0 else -step_size
+            self.avatar.x += step_size * direction
+        return direction
 
     def _broadcast_events(self) -> None:
         if hasattr(self.game, "webapp"):
@@ -405,6 +471,13 @@ class Player:
         self._hold_anchor = None  # AGENT 20260915: no hold in progress at trial start
         self._hold_elapsed = 0.0  # AGENT 20260915: no hold in progress at trial start
         self._hold_cooldown_remaining = None  # AGENT 20260915: no cooldown in progress at trial start
+        self._move_dir = 1                    # AGENT 20261002: see __init__
+        self._hold_offset = 0.0
+        self._hold_redraw_in = 0.0
+        self._no_contact_s = 0.0
+        self._contact_ref = None
+        self._contact_offset_sum = 0.0
+        self._contact_n = 0
 
         # --- AGENT 20260816: draw this trial's "non_contingent" recording -------
         # A fresh file per trial, without replacement (see the __init__
