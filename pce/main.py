@@ -152,6 +152,21 @@ def main():
             n_main_trials, max_run=st.AGENT_CONDITION_MAX_RUN
         )
 
+    # AGENT 20261003: training trials used to fall back to the settings.py
+    # default (always "non_contingent"), so participants only ever practised
+    # with an agent that ignores them. Each training trial now gets its own
+    # condition: a random permutation of the three conditions per session
+    # (counterbalanced across participants), or the forced one under --condition.
+    n_training_trials = sum(st.NUM_TRAINING_TRIALS.values())
+    if args.condition is not None:
+        training_condition_sequence = [
+            {1: "baseline", 2: "non_contingent", 3: "contingent"}[args.condition]
+        ] * n_training_trials
+    else:
+        training_condition_sequence = generate_agent_condition_sequence(
+            n_training_trials, max_run=st.AGENT_CONDITION_MAX_RUN
+        )
+
     # AGENT 20260813: log the per-trial sequence on its own line, so which
     # conditions a saved session ran under are greppable in its engine.log.
     # 3rd condition (baseline) added 20260904 AH; logs the whole sequence
@@ -165,6 +180,13 @@ def main():
             agent_condition_sequence,
             st.AGENT_TAU_SECS,
             st.AGENT_V_THRESHOLD,
+        )
+
+    if st.AGENT_ENABLED:
+        logger.info(
+            "AGENT: %s training trials, condition sequence = %s",
+            n_training_trials,
+            training_condition_sequence,
         )
 
     # Log settings, arguments and current git commits
@@ -224,19 +246,24 @@ def main():
             main_trial_block.append((phase.Trial, {"condition": next(_conditions_iter)}))
             main_trial_block.append((phase.AfterTrial, {}))
 
+    # AGENT 20261003: training trials, each with its own condition (see above).
+    # Built with a loop, not `[...] * n`, for the same shared-dict reason as the
+    # main block. Visible trials come first, then hidden, as before.
+    training_block = []
+    _training_iter = iter(training_condition_sequence)
+    for kind in ("visible", "hidden"):
+        for _ in range(st.NUM_TRAINING_TRIALS[kind]):
+            training_block.append(
+                (phase.Trial, {"training": kind, "condition": next(_training_iter)})
+            )
+            training_block.append((phase.AfterTrial, {"training": kind}))
+
     sequence = (
         [
             (phase.PreExperiment, {}),
             (phase.PreTrials, {}),
         ]
-        + [
-            (phase.Trial, {"training": "visible"}),
-            (phase.AfterTrial, {"training": "visible"}),
-        ] * st.NUM_TRAINING_TRIALS["visible"]
-        + [
-            (phase.Trial, {"training": "hidden"}),
-            (phase.AfterTrial, {"training": "hidden"}),
-        ] * st.NUM_TRAINING_TRIALS["hidden"]
+        + training_block
         + main_trial_block
         + [(phase.AfterExperiment, {}), (phase.End, {})]
     )
