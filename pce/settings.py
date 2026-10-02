@@ -203,9 +203,8 @@ AGENT_EXPLORE_REVERSAL_MEAN_SECS = 3.0
 
 # How far (+/- units) the agent wobbles around a fixed spot while holding,
 # instead of crawling or freezing. Placeholder, not measured from data.
-# The offset is a uniform(-6, 6) draw, redrawn every AGENT_HOLD_JITTER_REDRAW_SECS
-# (below; it used to be redrawn every tick, which made the buzz stutter) -- see
-# player.py agent_step(), hold branch.
+# Both direction and step size are randomized -- see player.py agent_step()
+# (~line 274), a fresh uniform(-6, 6) draw every tick, not a fixed pattern.
 AGENT_HOLD_JITTER = 6
 AGENT_RETURN_SPEED = 280  # units/second while heading back to x_last_contact -- reuses AGENT_EXPLORE_SPEED's real-data-derived value
 
@@ -216,25 +215,6 @@ AGENT_RETURN_SPEED = 280  # units/second while heading back to x_last_contact --
 # match the real 2023 contact/gap rhythm (~0.25s / ~0.5s), not pilot data.
 AGENT_MAX_HOLD_SECS = 0.5       # ~2x the real median contact duration
 AGENT_HOLD_COOLDOWN_SECS = 0.5  # matches the real median gap duration
-
-# 20261002: buzz-flicker fix (headless full-session audit, lab-notebook 10-02).
-# The old hold redrew +/-AGENT_HOLD_JITTER EVERY tick (~500-860 Hz) around an
-# anchor sitting right at the contact edge, so the participant's buzz stuttered
-# on/off tens of times per second (real 2023 humans: never above 5 pulses/s).
-# Three design choices, none of them measured from the 2023 data:
-# - the jitter offset is redrawn only every AGENT_HOLD_JITTER_REDRAW_SECS
-#   (0.1 s: well above the 30 ms threshold the 2023 analysis treated as sensor
-#   artifact, below the 0.25 s median contact; also makes the hold independent
-#   of the loop rate, Mac ~860 Hz vs Pi ~470 Hz);
-# - the hold is anchored AGENT_HOLD_JITTER + AGENT_HOLD_INWARD_MARGIN units
-#   further in the direction the agent was travelling, so the whole jitter band
-#   stays inside the contact zone instead of straddling its edge;
-# - the hold timer is only reset after contact has been absent for
-#   AGENT_HOLD_RESET_AFTER_SECS, so a one-tick dropout can't defeat the
-#   AGENT_MAX_HOLD_SECS cap.
-AGENT_HOLD_JITTER_REDRAW_SECS = 0.1
-AGENT_HOLD_INWARD_MARGIN = 2    # units
-AGENT_HOLD_RESET_AFTER_SECS = 0.1
 
 # OLD (single fixed recording) -- superseded 20260816 by AGENT_REPLAY_CONTACT_POOL below.
 # AGENT_REPLAY_CONTACT_CSV = "../../sample-data/pce02230809/trials/pair_02_trial_2.csv"
