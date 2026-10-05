@@ -349,10 +349,16 @@ class PreTrials(Phase):
 
 
 class Trial(Phase):
-    def __init__(self, *args, training=None, condition=None, **kwargs):
+    def __init__(self, *args, training=None, condition=None, trial_number=None,
+                 num_trials=None, **kwargs):
         assert training in self.training_types
         self._done = False
         self.training = training
+        # AGENT 20261005: 1-based main-trial number and total, shown on the
+        # experimenter screen ("Main experiment trial 5 / 18"). None for
+        # training trials.
+        self.trial_number = trial_number
+        self.num_trials = num_trials
         # AGENT 20260904: this trial's own agent condition, set by main.py's
         # randomized/counterbalanced sequence (main trials only -- training
         # trials pass no `condition`, so they fall back to whatever
@@ -377,6 +383,8 @@ class Trial(Phase):
                 "shadow_delta0": self.players[0].shadow.delta,
                 "shadow_delta1": self.players[1].shadow.delta,
                 "training": self.training,
+                "trial_number": self.trial_number,
+                "num_trials": self.num_trials,
             },
         }
 

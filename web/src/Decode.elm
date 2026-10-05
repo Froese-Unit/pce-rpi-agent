@@ -164,15 +164,21 @@ qAfterExperiment =
 
 config : D.Decoder SpaceConfig
 config =
-    D.map8 SpaceConfig
-        (D.field "env_width" D.float)
-        (D.field "avatar_width" D.float)
-        (D.field "static_width" D.float)
-        (D.field "static0" D.float)
-        (D.field "static1" D.float)
-        (D.field "shadow_delta0" D.float)
-        (D.field "shadow_delta1" D.float)
-        (D.field "training" nullableTraining)
+    -- AGENT 20261005: map8 is the largest map, so the trial counter fields are
+    -- applied in a second step. They are missing or null outside main trials.
+    D.map3 (\partial trialNumber numTrials -> partial trialNumber numTrials)
+        (D.map8 SpaceConfig
+            (D.field "env_width" D.float)
+            (D.field "avatar_width" D.float)
+            (D.field "static_width" D.float)
+            (D.field "static0" D.float)
+            (D.field "static1" D.float)
+            (D.field "shadow_delta0" D.float)
+            (D.field "shadow_delta1" D.float)
+            (D.field "training" nullableTraining)
+        )
+        (D.maybe (D.field "trial_number" D.int))
+        (D.maybe (D.field "num_trials" D.int))
 
 
 pProps : D.Decoder a -> D.Decoder (PProps a)

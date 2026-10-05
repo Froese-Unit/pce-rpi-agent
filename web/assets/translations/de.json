@@ -466,6 +466,7 @@
             },
             "trial": {
                 "title": "XXXTrial",
+                "title-main": "XXXMain experiment trial {{n}} / {{total}}",
                 "title-visible-training": "XXXTraining trial Visible space",
                 "title-hidden-training": "XXXTraining trial Hidden space"
             },
@@ -486,8 +487,8 @@
                 "next-phase": "XXXThe next phase is a trial."
             },
             "after-experiment": {
-                "title": "XXXPersonality and strategy questionnaires",
-                "instructions": "XXXParticipants should fill the personality and strategy questionnaires. Once they are done, the experiment is finished.",
+                "title": "XXXStrategy questionnaire",
+                "instructions": "XXXParticipants should fill the strategy questionnaire. Once they are done, the experiment is finished.",
                 "partner-traits-done": "XXXPartner's personality traits completed",
                 "personality-questionnaire-done": "XXXPersonality questionnaire completed",
                 "stategy-questionnaire-done": "XXXStrategy questionnaire completed"

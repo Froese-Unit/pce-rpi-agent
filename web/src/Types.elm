@@ -218,6 +218,8 @@ type alias SpaceConfig =
     , shadowDelta0 : Float
     , shadowDelta1 : Float
     , training : Maybe Training
+    , trialNumber : Maybe Int
+    , numTrials : Maybe Int
     }
 
 

@@ -466,6 +466,7 @@
             },
             "trial": {
                 "title": "Trial",
+                "title-main": "Main experiment trial {{n}} / {{total}}",
                 "title-visible-training": "Training trial Visible space",
                 "title-hidden-training": "Training trial Hidden space"
             },
@@ -486,8 +487,8 @@
                 "next-phase": "The next phase is a trial."
             },
             "after-experiment": {
-                "title": "Personality and strategy questionnaires",
-                "instructions": "Participants should fill the personality and strategy questionnaires. Once they are done, the experiment is finished.",
+                "title": "Strategy questionnaire",
+                "instructions": "Participants should fill the strategy questionnaire. Once they are done, the experiment is finished.",
                 "partner-traits-done": "Partner's personality traits completed",
                 "personality-questionnaire-done": "Personality questionnaire completed",
                 "stategy-questionnaire-done": "Strategy questionnaire completed"

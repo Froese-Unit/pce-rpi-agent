@@ -241,9 +241,15 @@ def main():
     # written, not just one.
     main_trial_block = []
     _conditions_iter = iter(agent_condition_sequence)
+    n_main_total = sum(st.GLOBAL["NUM_TRIALS"])
     for ntrials in st.GLOBAL["NUM_TRIALS"]:
         for _ in range(ntrials):
-            main_trial_block.append((phase.Trial, {"condition": next(_conditions_iter)}))
+            main_trial_block.append((phase.Trial, {
+                "condition": next(_conditions_iter),
+                # AGENT 20261005: for the experimenter screen's trial counter
+                "trial_number": len(main_trial_block) // 2 + 1,
+                "num_trials": n_main_total,
+            }))
             main_trial_block.append((phase.AfterTrial, {}))
 
     # AGENT 20261003: training trials, each with its own condition (see above).

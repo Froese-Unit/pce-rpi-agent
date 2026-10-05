@@ -290,7 +290,15 @@ connectedExperimenterView model phase =
                 titleText =
                     case config.training of
                         Nothing ->
-                            t model.translations "connected.experimenter.trial.title"
+                            case ( config.trialNumber, config.numTrials ) of
+                                ( Just n, Just total ) ->
+                                    tr model.translations
+                                        Curly
+                                        "connected.experimenter.trial.title-main"
+                                        [ ( "n", String.fromInt n ), ( "total", String.fromInt total ) ]
+
+                                _ ->
+                                    t model.translations "connected.experimenter.trial.title"
 
                         Just Visible ->
                             t model.translations "connected.experimenter.trial.title-visible-training"
@@ -1074,18 +1082,21 @@ participantStrategyView model =
                 )
         , spellcheck = False
         }
-    , Input.multiline
-        [ El.height (El.minimum (3 * 44) El.shrink) ]
-        { onChange = StrategyOtherInput
-        , text = input.other
-        , placeholder = Nothing
-        , label =
-            Input.labelAbove []
-                (El.textColumn [ El.paddingXY 0 10, El.spacing 20 ]
-                    (strategyOtherText model)
-                )
-        , spellcheck = False
-        }
+
+    -- AGENT 20261005: "strategies your partner developed" question hidden; not
+    -- related to the research questions. The "other" answer is saved empty.
+    -- , Input.multiline
+    --     [ El.height (El.minimum (3 * 44) El.shrink) ]
+    --     { onChange = StrategyOtherInput
+    --     , text = input.other
+    --     , placeholder = Nothing
+    --     , label =
+    --         Input.labelAbove []
+    --             (El.textColumn [ El.paddingXY 0 10, El.spacing 20 ]
+    --                 (strategyOtherText model)
+    --             )
+    --     , spellcheck = False
+    --     }
     , Input.multiline
         []
         { onChange = StrategyCommentInput
