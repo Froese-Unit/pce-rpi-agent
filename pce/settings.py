@@ -270,6 +270,17 @@ AGENT_REPLAY_CONTACT_POOL = sorted(
     if not any(f.endswith(f"{pair}_trial_2.csv") for pair in AGENT_REPLAY_POOL_EXCLUDE)
 )
 
+# Fail at startup, not mid-session. A typo in the exclude list above matches
+# nothing and silently leaves the recording in the pool; a wrong working
+# directory makes the glob empty, which only crashes at the first
+# non_contingent trial, with a participant already sitting there.
+AGENT_REPLAY_POOL_EXPECTED = 31  # 32 recordings, minus AGENT_REPLAY_POOL_EXCLUDE
+assert len(AGENT_REPLAY_CONTACT_POOL) == AGENT_REPLAY_POOL_EXPECTED, (
+    f"replay pool is {len(AGENT_REPLAY_CONTACT_POOL)}, expected "
+    f"{AGENT_REPLAY_POOL_EXPECTED}. Run from the pce-rpi root, and check the "
+    f"names in AGENT_REPLAY_POOL_EXCLUDE = {AGENT_REPLAY_POOL_EXCLUDE}."
+)
+
 # How often (seconds) the terminal prints the agent's V/mode while testing.
 # Set to 0 to turn off (do this for real data collection).
 AGENT_DEBUG_LOG_SECS = 1.0
