@@ -1,6 +1,35 @@
 PCE on Raspberry Pi
 ===================
 
+> **Branch: `psychophysics`** (created 2026-10-07 from `main`)
+>
+> A variant of the human-agent experiment with a psychophysics-style trial
+> structure: **the trial ends when the participant clicks**, instead of always
+> running its full duration.
+>
+> Why: on `main` (and in 2023) the PAS rating lands up to a minute after the
+> decision it asks about, which makes it a retrospective rating rather than a
+> test of H2 -- see `lab-notebook.md` 2026-10-03, "Design question". Here the
+> rating follows the decision immediately, and because trials end early, more
+> of them fit in a session.
+>
+> | | `main` | `psychophysics` |
+> |---|---|---|
+> | trial ends | always at the full duration | at the click, else at the cap |
+> | `NUM_TRIALS` | `[6, 6, 6]` = 18 (6/condition) | `[12, 12, 12]` = 36 (12/condition) |
+> | `DURATION_SECS["trial"]` | 60 s, a fixed length | 30 s, a **cap** |
+> | saved columns | | adds `trial_ended_on`, `click_secs` |
+>
+> The three agent conditions, the contact-memory kernel, the geometry and the
+> questionnaire schedule are all unchanged -- the PAS still runs after every
+> main trial. The knobs are at the end of `pce/settings.py`
+> (`TRIAL_ENDS_ON_CLICK`, `TRIAL_END_MIN_PRESS_SECS`,
+> `TRIAL_END_POST_CLICK_SECS`); setting `TRIAL_ENDS_ON_CLICK = False` restores
+> `main`'s behavior exactly.
+>
+> This is a `git worktree` of the `pce-rpi` checkout, not a separate clone, so
+> both can run side by side. It has no `.venv` of its own -- see below.
+
 Setup
 -----
 

@@ -364,6 +364,12 @@ class Trial(Phase):
         # trials pass no `condition`, so they fall back to whatever
         # st.AGENT_CONDITION already is; see start_tasks() below).
         self.condition = condition
+        # PSYCHOPHYSICS 20261007: set per trial in start_tasks(); defaulted here
+        # so save() and anything else reading them can never hit an
+        # AttributeError on a trial that was cut short before start_tasks.
+        self._end_at = None
+        self._click_elapsed = None
+        self._press_held = {}
         super().__init__(*args, **kwargs)
 
     def event_data(self):
@@ -423,6 +429,16 @@ class Trial(Phase):
         trial_duration = st.GLOBAL["DURATION_SECS"]["trial"]
         self._prev_tick_time = None  # AGENT: previous tick's current_time, to compute dt below
 
+        # --- PSYCHOPHYSICS 20261007: end the trial on the participant's click --
+        # See settings.py TRIAL_ENDS_ON_CLICK. _press_held is how long the
+        # button has been down continuously (reset by any released tick, so
+        # bounce never accumulates); _end_at is the elapsed time to stop at,
+        # set once a press clears TRIAL_END_MIN_PRESS_SECS. Both reset here, so
+        # they are per-trial like every other piece of state above.
+        self._press_held = {p.index: 0.0 for p in self.players}
+        self._end_at = None
+        self._click_elapsed = None  # elapsed time the ending click was registered
+
         def step(current_time, start_time):
             # --- AGENT: drive the agent once per tick -------------------------
             # This inner step() is the body of the trial loop; it runs every
@@ -448,8 +464,38 @@ class Trial(Phase):
             self.record(current_time - start_time)
             self.update_feedbacks()
 
+            # --- PSYCHOPHYSICS 20261007: has the participant clicked? ---------
+            # Checked AFTER record(), so history_button[-1] is this tick's
+            # state. Only non-agent players can end a trial: the agent never
+            # presses its button, and if that ever changes it must not cut a
+            # participant's trial short.
+            if st.TRIAL_ENDS_ON_CLICK and self._end_at is None:
+                for p in self.players:
+                    if p.is_agent or not p.history_button:
+                        continue
+                    if p.history_button[-1]:
+                        self._press_held[p.index] += dt
+                    else:
+                        self._press_held[p.index] = 0.0
+                    if self._press_held[p.index] >= st.TRIAL_END_MIN_PRESS_SECS:
+                        self._click_elapsed = elapsed
+                        self._end_at = elapsed + st.TRIAL_END_POST_CLICK_SECS
+                        logger.info(
+                            "Trial: player %s click at %.3fs -> ending at %.3fs "
+                            "(cap was %ss)",
+                            p.index, elapsed, self._end_at, trial_duration,
+                        )
+                        break
+
         def cond(current_time, start_time):
-            return current_time - start_time < trial_duration
+            elapsed = current_time - start_time
+            # PSYCHOPHYSICS 20261007: two ways to stop -- the click (_end_at,
+            # set in step() above) or the cap. The cap is still checked when a
+            # click has been registered, so a post-click window can never push
+            # a trial past its maximum length.
+            if self._end_at is not None and elapsed >= self._end_at:
+                return False
+            return elapsed < trial_duration
 
         def end():
             self.box.signal.standby()
@@ -577,6 +623,17 @@ class Trial(Phase):
         # alone, e.g. baseline and a quiet non_contingent stretch can look
         # similar).
         data["agent_condition"] = self._agent_condition_used
+        # --- PSYCHOPHYSICS 20261007: how this trial ended --------------------
+        # Constant for every row, like agent_condition above. "click" = ended
+        # on the participant's press; "cap" = ran the full
+        # DURATION_SECS["trial"] with no qualifying press. click_secs is the
+        # elapsed time of that press (NaN on a capped trial) -- the response
+        # time this design exists to measure, and not reconstructible from the
+        # button column alone once the trial stops at the press.
+        data["trial_ended_on"] = "click" if self._click_elapsed is not None else "cap"
+        data["click_secs"] = (
+            self._click_elapsed if self._click_elapsed is not None else float("nan")
+        )
         data[f"static_object_0"] = st.OBJ_LOCATION_ZERO #Shows that motor is on
         data[f"static_object_1"] = st.OBJ_LOCATION_ZERO + 300 #Shows that motor is on
         data[f"motor_0_vibrate_software"] = self.history_motor_0 #Shows that motor is on

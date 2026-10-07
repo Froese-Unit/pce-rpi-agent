@@ -16,10 +16,18 @@ REFRESH_RATE_VISUAL = 15
 
 # GLOBAL SETTINGS
 EXPERIMENT = {
-    "NUM_TRIALS": [6, 6, 6],
+    # PSYCHOPHYSICS 20261007: 36 main trials in 3 blocks (12 per condition,
+    # was [6, 6, 6] = 18). Affordable because trials now end on the click
+    # rather than running the full duration -- see TRIAL_ENDS_ON_CLICK below.
+    "NUM_TRIALS": [12, 12, 12],
     # 20260721 AH: resting shortened for testing (3 min was too long). The frontend needs the
     # resting phase to exist, so we keep it but use a short duration. Swap back to 3*60 for real runs.
-    "DURATION_SECS": {"trial": 60, "resting": 3}, #quick testing (original was "resting": 3 * 60)
+    # PSYCHOPHYSICS 20261007: "trial" 60 -> 30. This is now a CAP, not a
+    # duration: it is how long a trial runs if the participant never clicks.
+    # 30 s sits just past the 2023 median first click (29.9 s), which was
+    # measured without a click-ends-trial rule, so most trials should end on a
+    # decision rather than on the cap.
+    "DURATION_SECS": {"trial": 30, "resting": 3}, #quick testing (original was "resting": 3 * 60)
     #"DURATION_SECS": {"trial": 60, "resting": 3 * 60}, #original
     #"PERSONALITY_QUESTIONS_LIMIT": 2, #quick testing
     "PERSONALITY_QUESTIONS_LIMIT": None, #original
@@ -48,6 +56,32 @@ NUM_TRAINING_TRIALS = {
     "visible": 2,
     "hidden": 1,
 }
+
+# --- PSYCHOPHYSICS 20261007: trial ends on the participant's click ----------
+# The 2023 design (and pce-rpi `main`) runs every trial for its full duration
+# regardless of the button, so the PAS rating lands up to 30 s after the
+# decision it is meant to be about -- a retrospective rating, not a clean test
+# of H2 (lab-notebook.md 2026-10-03, "Design question"). On this branch the
+# trial ends at the click instead, psychophysics-style, so rating follows
+# decision immediately and more trials fit in the same session.
+#
+# DURATION_SECS["trial"] above becomes the CAP: what happens when no click
+# comes. It must stay finite -- 11% of 2023 participant-trials had no click at
+# all, and those trials would otherwise never end.
+TRIAL_ENDS_ON_CLICK = True
+
+# How long the button must be held continuously before it counts as a click
+# and ends the trial. Guards against contact bounce, which at
+# REFRESH_RATE_DATA = 1000 would otherwise end a trial on a single noisy tick.
+# 0.15 s is the same minimum-press threshold the analysis pipeline applies
+# offline (0-FUNCTIONS.R, from the 2023 cleaning), so engine and analysis agree
+# on what a press is.
+TRIAL_END_MIN_PRESS_SECS = 0.15
+
+# Seconds to keep running after the click is registered, before ending. 0 =
+# end immediately (the chosen default). Set to e.g. 2.0 to keep a short
+# post-decision window; nothing else needs changing.
+TRIAL_END_POST_CLICK_SECS = 0.0
 LOGGING_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 
 # INPUT/OUPUT SETTINGS
