@@ -21027,16 +21027,7 @@ var $author$project$View$connectedExperimenterView = F2(
 										var _v1 = config.agentCondition;
 										if (_v1.$ === 'Just') {
 											var condition = _v1.a;
-											return $mdgriffith$elm_ui$Element$text(
-												A4(
-													$ChristophP$elm_i18next$I18Next$tr,
-													model.translations,
-													$ChristophP$elm_i18next$I18Next$Curly,
-													'connected.experimenter.agent-condition',
-													_List_fromArray(
-														[
-															_Utils_Tuple2('condition', condition)
-														])));
+											return $mdgriffith$elm_ui$Element$text('Agent condition: ' + condition);
 										} else {
 											return $mdgriffith$elm_ui$Element$none;
 										}

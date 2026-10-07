@@ -318,12 +318,15 @@ connectedExperimenterView model phase =
                     -- participant the answer.
                     , case config.agentCondition of
                         Just condition ->
-                            El.text
-                                (tr model.translations
-                                    Curly
-                                    "connected.experimenter.agent-condition"
-                                    [ ( "condition", condition ) ]
-                                )
+                            -- Not translated on purpose. This is an internal
+                            -- lab readout and the value itself
+                            -- ("non_contingent") is an English identifier, so
+                            -- a translation key would buy nothing -- and it
+                            -- would reintroduce the stale-translations trap
+                            -- (cf. 3acb5fd): the browser can pick up a new
+                            -- elm.js while still serving a cached
+                            -- translations JSON, which renders the raw key.
+                            El.text ("Agent condition: " ++ condition)
 
                         Nothing ->
                             El.none
