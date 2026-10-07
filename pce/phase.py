@@ -481,10 +481,14 @@ class Trial(Phase):
                 for p in self.players:
                     if p.is_agent or not p.history_button:
                         continue
-                    if p.history_button[-1]:
-                        self._press_held[p.index] += dt
-                    else:
-                        self._press_held[p.index] = 0.0
+                    if not p.history_button[-1]:
+                        self._press_held[p.index] = 0.0   # released: start over
+                        continue
+                    self._press_held[p.index] += dt
+                    # NOTE the check lives INSIDE the pressed branch. With
+                    # TRIAL_END_MIN_PRESS_SECS = 0 a check outside it would be
+                    # satisfied by 0.0 >= 0.0 on the very first tick and end
+                    # the trial before anyone touched anything.
                     if self._press_held[p.index] >= st.TRIAL_END_MIN_PRESS_SECS:
                         self._click_elapsed = elapsed
                         self._end_at = elapsed + st.TRIAL_END_POST_CLICK_SECS

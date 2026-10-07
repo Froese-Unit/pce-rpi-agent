@@ -70,13 +70,22 @@ NUM_TRAINING_TRIALS = {
 # all, and those trials would otherwise never end.
 TRIAL_ENDS_ON_CLICK = True
 
-# How long the button must be held continuously before it counts as a click
-# and ends the trial. Guards against contact bounce, which at
-# REFRESH_RATE_DATA = 1000 would otherwise end a trial on a single noisy tick.
-# 0.15 s is the same minimum-press threshold the analysis pipeline applies
-# offline (0-FUNCTIONS.R, from the 2023 cleaning), so engine and analysis agree
-# on what a press is.
-TRIAL_END_MIN_PRESS_SECS = 0.15
+# How long the button must be held continuously before it counts as a click.
+# 0 = end on the first registered press, which is the right default:
+#
+#   - Bounce is already handled in hardware. controller.py builds the Button
+#     with bounce_time=0.005, so gpiozero filters noise before we see it; a
+#     second threshold here guards against nothing.
+#   - A non-zero value CANNOT be satisfied under --tui. The TUI's button
+#     (game.py action_press) calls log_button_press(), which sets a flag that
+#     record_button_press() reads and clears, so the button reads as pressed
+#     for exactly ONE tick. Requiring a continuous hold made the trial
+#     unendable on the keyboard -- found 20261007 running the variant on
+#     mockpins.
+#
+# Raise it only if real sessions show accidental brushes ending trials, and
+# remember that doing so disables click-to-end on the TUI.
+TRIAL_END_MIN_PRESS_SECS = 0.0
 
 # Seconds to keep running after the click is registered, before ending. 0 =
 # end immediately (the chosen default). Set to e.g. 2.0 to keep a short
