@@ -253,11 +253,32 @@ AGENT_HOLD_COOLDOWN_SECS = 0.5  # matches the real median gap duration
 # OLD (single fixed recording) -- superseded 20260816 by AGENT_REPLAY_CONTACT_POOL below.
 # AGENT_REPLAY_CONTACT_CSV = "../../sample-data/pce02230809/trials/pair_02_trial_2.csv"
 
-# 32 real 2023 recordings for the non_contingent condition; a different one
-# drawn per trial, no repeats (player.py). Only trial_2 files -- trial_1 has
-# a known recording bug. Lives inside this repo so `git clone` gets it.
+# Real 2023 recordings for the non_contingent condition; a different one drawn
+# per trial, no repeats (player.py). Only trial_2 files -- trial_1 has a known
+# recording bug. Lives inside this repo so `git clone` gets it.
+#
+# SCREENED 20261007 -- 32 recordings available, 31 used. The screening and the
+# reasoning are in
+#   0-preliminaries/agent-conditions/20261007-replay-pool-screening.ipynb
+# (summarised in findings.md), kept because this pool IS the non_contingent
+# agent and a reviewer can reasonably ask how it was chosen.
+#
+# pair_30 is excluded on the STRUCTURE of its contacts, not their total: 5
+# contacts in 60 s, one of them 41 s long -- that pair found each other and
+# stopped moving. Replayed as c_t it would hold the agent still for two thirds
+# of a trial, unlike anything else in the pool and an obvious cue. Excluding it
+# takes the longest contact anywhere in the pool from 41.3 s to 10.7 s.
+#
+# pair_20 and pair_13 also clear a 1.5*IQR fence on contact share (62.4% and
+# 56.2% vs a pool median of 29.2%) but are KEPT: 26 contacts each, median
+# durations in the normal range. They are busy dyads, not inactive ones --
+# contact share alone does not tell the two apart, which is why the rule is
+# stated on structure.
+AGENT_REPLAY_POOL_EXCLUDE = ["pair_30"]
+
 AGENT_REPLAY_CONTACT_POOL = sorted(
-    glob.glob("sample-data/pce*/trials/pair_*_trial_2.csv")
+    f for f in glob.glob("sample-data/pce*/trials/pair_*_trial_2.csv")
+    if not any(f.endswith(f"{pair}_trial_2.csv") for pair in AGENT_REPLAY_POOL_EXCLUDE)
 )
 
 # How often (seconds) the terminal prints the agent's V/mode while testing.
