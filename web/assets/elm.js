@@ -11518,7 +11518,9 @@ var $author$project$Types$SpaceConfig = function (envWidth) {
 							return function (training) {
 								return function (trialNumber) {
 									return function (numTrials) {
-										return {avatarWidth: avatarWidth, envWidth: envWidth, numTrials: numTrials, shadowDelta0: shadowDelta0, shadowDelta1: shadowDelta1, static0: static0, static1: static1, staticWidth: staticWidth, training: training, trialNumber: trialNumber};
+										return function (agentCondition) {
+											return {agentCondition: agentCondition, avatarWidth: avatarWidth, envWidth: envWidth, numTrials: numTrials, shadowDelta0: shadowDelta0, shadowDelta1: shadowDelta1, static0: static0, static1: static1, staticWidth: staticWidth, training: training, trialNumber: trialNumber};
+										};
 									};
 								};
 							};
@@ -11529,6 +11531,7 @@ var $author$project$Types$SpaceConfig = function (envWidth) {
 		};
 	};
 };
+var $elm$json$Json$Decode$map4 = _Json_map4;
 var $elm$json$Json$Decode$map8 = _Json_map8;
 var $elm$json$Json$Decode$maybe = function (decoder) {
 	return $elm$json$Json$Decode$oneOf(
@@ -11552,11 +11555,11 @@ var $author$project$Decode$trainingHelp = function (s) {
 };
 var $author$project$Decode$training = A2($elm$json$Json$Decode$andThen, $author$project$Decode$trainingHelp, $elm$json$Json$Decode$string);
 var $author$project$Decode$nullableTraining = $elm$json$Json$Decode$nullable($author$project$Decode$training);
-var $author$project$Decode$config = A4(
-	$elm$json$Json$Decode$map3,
-	F3(
-		function (partial, trialNumber, numTrials) {
-			return A2(partial, trialNumber, numTrials);
+var $author$project$Decode$config = A5(
+	$elm$json$Json$Decode$map4,
+	F4(
+		function (partial, trialNumber, numTrials, agentCondition) {
+			return A3(partial, trialNumber, numTrials, agentCondition);
 		}),
 	A9(
 		$elm$json$Json$Decode$map8,
@@ -11572,8 +11575,9 @@ var $author$project$Decode$config = A4(
 	$elm$json$Json$Decode$maybe(
 		A2($elm$json$Json$Decode$field, 'trial_number', $elm$json$Json$Decode$int)),
 	$elm$json$Json$Decode$maybe(
-		A2($elm$json$Json$Decode$field, 'num_trials', $elm$json$Json$Decode$int)));
-var $elm$json$Json$Decode$map4 = _Json_map4;
+		A2($elm$json$Json$Decode$field, 'num_trials', $elm$json$Json$Decode$int)),
+	$elm$json$Json$Decode$maybe(
+		A2($elm$json$Json$Decode$field, 'agent_condition', $elm$json$Json$Decode$string)));
 var $author$project$Types$AfterExperimentPhase = {$: 'AfterExperimentPhase'};
 var $author$project$Types$RestingPhase = {$: 'RestingPhase'};
 var $author$project$Types$TrialPhase = function (a) {
@@ -20941,12 +20945,12 @@ var $author$project$View$connectedExperimenterView = F2(
 				var duration = phase.a;
 				var config = phase.b;
 				var titleText = function () {
-					var _v1 = config.training;
-					if (_v1.$ === 'Nothing') {
-						var _v2 = _Utils_Tuple2(config.trialNumber, config.numTrials);
-						if ((_v2.a.$ === 'Just') && (_v2.b.$ === 'Just')) {
-							var n = _v2.a.a;
-							var total = _v2.b.a;
+					var _v2 = config.training;
+					if (_v2.$ === 'Nothing') {
+						var _v3 = _Utils_Tuple2(config.trialNumber, config.numTrials);
+						if ((_v3.a.$ === 'Just') && (_v3.b.$ === 'Just')) {
+							var n = _v3.a.a;
+							var total = _v3.b.a;
 							return A4(
 								$ChristophP$elm_i18next$I18Next$tr,
 								model.translations,
@@ -20965,11 +20969,11 @@ var $author$project$View$connectedExperimenterView = F2(
 							return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.trial.title');
 						}
 					} else {
-						if (_v1.a.$ === 'Visible') {
-							var _v3 = _v1.a;
+						if (_v2.a.$ === 'Visible') {
+							var _v4 = _v2.a;
 							return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.trial.title-visible-training');
 						} else {
-							var _v4 = _v1.a;
+							var _v5 = _v2.a;
 							return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.trial.title-hidden-training');
 						}
 					}
@@ -21019,6 +21023,24 @@ var $author$project$View$connectedExperimenterView = F2(
 													'duration',
 													$elm$core$String$fromInt(duration))
 												]))),
+										function () {
+										var _v1 = config.agentCondition;
+										if (_v1.$ === 'Just') {
+											var condition = _v1.a;
+											return $mdgriffith$elm_ui$Element$text(
+												A4(
+													$ChristophP$elm_i18next$I18Next$tr,
+													model.translations,
+													$ChristophP$elm_i18next$I18Next$Curly,
+													'connected.experimenter.agent-condition',
+													_List_fromArray(
+														[
+															_Utils_Tuple2('condition', condition)
+														])));
+										} else {
+											return $mdgriffith$elm_ui$Element$none;
+										}
+									}(),
 										$author$project$View$experimenterLegendView(model)
 									])),
 								A2(
@@ -21064,8 +21086,8 @@ var $author$project$View$connectedExperimenterView = F2(
 				var nextPhase = phase.b;
 				var qAfterTrial = phase.d;
 				var maybeParticipantExperience = function () {
-					var _v5 = _Utils_Tuple2(model.meta.trainingTrialHasQuestionnaires, training);
-					if ((!_v5.a) && (_v5.b.$ === 'Just')) {
+					var _v6 = _Utils_Tuple2(model.meta.trainingTrialHasQuestionnaires, training);
+					if ((!_v6.a) && (_v6.b.$ === 'Just')) {
 						return _List_Nil;
 					} else {
 						return _List_fromArray(
@@ -25733,4 +25755,4 @@ var $author$project$Main$main = $elm$browser$Browser$application(
 		}
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.2"},"types":{"message":"Types.Msg","aliases":{"Types.Meta":{"args":[],"type":"{ slots : Types.Slots, pids : Types.Pids, uuid : Types.Uuid, lang : String.String, trainingTrialHasQuestionnaires : Basics.Bool }"},"Types.PProps":{"args":["a"],"type":"{ p0 : a, p1 : a }"},"Types.Pids":{"args":[],"type":"Types.PProps (Maybe.Maybe String.String)"},"Types.Player":{"args":[],"type":"{ x : Basics.Float, button : Basics.Bool, ready : Basics.Bool, clicked : Basics.Bool }"},"Types.Players":{"args":[],"type":"Types.PProps Types.Player"},"Types.QAfterExperiment":{"args":[],"type":"{ partnerTraits : Types.PProps Basics.Bool, personalityAfter : Types.PProps Basics.Bool, strategy : Types.PProps Basics.Bool }"},"Types.QAfterTrial":{"args":[],"type":"{ experience : Types.PProps Basics.Bool }"},"Types.QPreExperiment":{"args":[],"type":"{ person : Types.PProps Basics.Bool, personalityPre : Types.PProps Basics.Bool }"},"Types.Slots":{"args":[],"type":"{ experimenter : Maybe.Maybe Types.Uuid, p0 : Maybe.Maybe Types.Uuid, p1 : Maybe.Maybe Types.Uuid }"},"Types.TrialClick":{"args":[],"type":"Basics.Bool"},"Types.Uuid":{"args":[],"type":"String.String"},"Types.Duration":{"args":[],"type":"Basics.Int"},"Types.PersonalityConfig":{"args":[],"type":"Maybe.Maybe Basics.Int"},"Types.SpaceConfig":{"args":[],"type":"{ envWidth : Basics.Float, avatarWidth : Basics.Float, staticWidth : Basics.Float, static0 : Basics.Float, static1 : Basics.Float, shadowDelta0 : Basics.Float, shadowDelta1 : Basics.Float, training : Maybe.Maybe Types.Training, trialNumber : Maybe.Maybe Basics.Int, numTrials : Maybe.Maybe Basics.Int }"},"Types.TrialClicks":{"args":[],"type":"Types.PProps Types.TrialClick"},"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"}},"unions":{"Types.Msg":{"args":[],"tags":{"NoOp":[],"Errored":["String.String"],"RecvMeta":["Result.Result Http.Error Types.Meta"],"RecvTranslations":["Result.Result Http.Error I18Next.Translations"],"SocketState":["Result.Result String.String Basics.Bool"],"RecvSocketMsg":["Result.Result Json.Decode.Error Types.SocketMsg"],"SelectSlot":["Types.Slot"],"RecvSlots":["Result.Result Http.Error (Types.ApiResponse Types.Slots)"],"PidInput":["String.String"],"RecvPids":["Result.Result Http.Error (Types.ApiResponse Types.Pids)"],"SubmitPid":[],"SubmitStartPhase":[],"RecvPhase":["Result.Result Http.Error (Types.ApiResponse Types.Phase)"],"SubmitReady":[],"RecvPlayers":["Result.Result Http.Error (Types.ApiResponse Types.Players)"],"PersonalityInput":["Basics.Int","Basics.Int"],"PersonInputAge":["String.String"],"PersonSelectGender":["Maybe.Maybe String.String"],"PersonGenderDropdownMsg":["Dropdown.Msg String.String"],"PersonSelectNationality":["Maybe.Maybe String.String"],"PersonNationalityDropdownMsg":["Dropdown.Msg String.String"],"SubmitPerson":[],"RecvPersons":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityPre":[],"RecvPersonalitiesPre":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityAfter":[],"RecvPersonalitiesAfter":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"ExperienceClickPresenceInput":["Basics.Int"],"ExperienceClickConfidenceInput":["Basics.Int"],"ExperienceAbsenceFrequencyInput":["Basics.Int"],"ExperienceAbsenceStrengthInput":["Basics.Int"],"SubmitExperience":["Types.TrialClick"],"RecvExperiences":["Result.Result Http.Error (Types.ApiResponse Types.QAfterTrial)"],"PartnerTraitsInput":["Types.Trait","Basics.Float"],"SubmitPartnerTraits":[],"RecvPartnerTraits":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"StrategySelfInput":["String.String"],"StrategyOtherInput":["String.String"],"StrategyCommentInput":["String.String"],"SubmitStrategy":[],"RecvStrategies":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"]}},"Types.ApiResponse":{"args":["a"],"tags":{"BadStatus":["Basics.Int","Feedback.Feedback"],"GoodStatus":["a"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Json.Decode.Error":{"args":[],"tags":{"Field":["String.String","Json.Decode.Error"],"Index":["Basics.Int","Json.Decode.Error"],"OneOf":["List.List Json.Decode.Error"],"Failure":["String.String","Json.Decode.Value"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dropdown.Msg":{"args":["item"],"tags":{"OnDomFocus":["Result.Result Browser.Dom.Error ()"],"OnBlur":[],"OnClickPrompt":[],"OnSelect":["item"],"OnFilterTyped":["String.String"],"OnKeyDown":["Dropdown.Key"],"OnClickOutside":[]}},"Types.Phase":{"args":[],"tags":{"PreExperiment":["Types.QPreExperiment","Types.SpaceConfig","Types.PersonalityConfig"],"PreFirstResting":[],"Resting":["Types.Duration"],"PreTrials":[],"Trial":["Types.Duration","Types.SpaceConfig"],"AfterResting":[],"AfterTrial":["Maybe.Maybe Types.Training","Types.NextPhase","Types.TrialClicks","Types.QAfterTrial"],"AfterExperiment":["Types.QAfterExperiment","Types.PersonalityConfig"],"End":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Types.Slot":{"args":[],"tags":{"Experimenter":[],"Participant":["Types.P"]}},"Types.SocketMsg":{"args":[],"tags":{"SocketMsgError":["String.String"],"SocketMsgPhase":["Types.Phase"],"SocketMsgMeta":["Types.Meta"],"SocketMsgPlayers":["Types.Players"]}},"String.String":{"args":[],"tags":{"String":[]}},"Types.Trait":{"args":[],"tags":{"Extraversion":[],"Neuroticism":[],"Openness":[],"Agreeableness":[],"Conscientiousness":[]}},"I18Next.Translations":{"args":[],"tags":{"Translations":["Dict.Dict String.String String.String"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Feedback.Feedback":{"args":[],"tags":{"Feedback":["{ known : Dict.Dict String.String Feedback.Item, unknown : String.String }"]}},"Dropdown.Key":{"args":[],"tags":{"ArrowDown":[],"ArrowUp":[],"Enter":[],"Esc":[]}},"List.List":{"args":["a"],"tags":{}},"Types.NextPhase":{"args":[],"tags":{"TrialPhase":["Maybe.Maybe Types.Training"],"RestingPhase":[],"AfterExperimentPhase":[]}},"Types.P":{"args":[],"tags":{"P0":[],"P1":[]}},"Types.Training":{"args":[],"tags":{"Visible":[],"Hidden":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Feedback.Item":{"args":[],"tags":{"Error":["String.String"],"Success":["String.String"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.2"},"types":{"message":"Types.Msg","aliases":{"Types.Meta":{"args":[],"type":"{ slots : Types.Slots, pids : Types.Pids, uuid : Types.Uuid, lang : String.String, trainingTrialHasQuestionnaires : Basics.Bool }"},"Types.PProps":{"args":["a"],"type":"{ p0 : a, p1 : a }"},"Types.Pids":{"args":[],"type":"Types.PProps (Maybe.Maybe String.String)"},"Types.Player":{"args":[],"type":"{ x : Basics.Float, button : Basics.Bool, ready : Basics.Bool, clicked : Basics.Bool }"},"Types.Players":{"args":[],"type":"Types.PProps Types.Player"},"Types.QAfterExperiment":{"args":[],"type":"{ partnerTraits : Types.PProps Basics.Bool, personalityAfter : Types.PProps Basics.Bool, strategy : Types.PProps Basics.Bool }"},"Types.QAfterTrial":{"args":[],"type":"{ experience : Types.PProps Basics.Bool }"},"Types.QPreExperiment":{"args":[],"type":"{ person : Types.PProps Basics.Bool, personalityPre : Types.PProps Basics.Bool }"},"Types.Slots":{"args":[],"type":"{ experimenter : Maybe.Maybe Types.Uuid, p0 : Maybe.Maybe Types.Uuid, p1 : Maybe.Maybe Types.Uuid }"},"Types.TrialClick":{"args":[],"type":"Basics.Bool"},"Types.Uuid":{"args":[],"type":"String.String"},"Types.Duration":{"args":[],"type":"Basics.Int"},"Types.PersonalityConfig":{"args":[],"type":"Maybe.Maybe Basics.Int"},"Types.SpaceConfig":{"args":[],"type":"{ envWidth : Basics.Float, avatarWidth : Basics.Float, staticWidth : Basics.Float, static0 : Basics.Float, static1 : Basics.Float, shadowDelta0 : Basics.Float, shadowDelta1 : Basics.Float, training : Maybe.Maybe Types.Training, trialNumber : Maybe.Maybe Basics.Int, numTrials : Maybe.Maybe Basics.Int, agentCondition : Maybe.Maybe String.String }"},"Types.TrialClicks":{"args":[],"type":"Types.PProps Types.TrialClick"},"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"}},"unions":{"Types.Msg":{"args":[],"tags":{"NoOp":[],"Errored":["String.String"],"RecvMeta":["Result.Result Http.Error Types.Meta"],"RecvTranslations":["Result.Result Http.Error I18Next.Translations"],"SocketState":["Result.Result String.String Basics.Bool"],"RecvSocketMsg":["Result.Result Json.Decode.Error Types.SocketMsg"],"SelectSlot":["Types.Slot"],"RecvSlots":["Result.Result Http.Error (Types.ApiResponse Types.Slots)"],"PidInput":["String.String"],"RecvPids":["Result.Result Http.Error (Types.ApiResponse Types.Pids)"],"SubmitPid":[],"SubmitStartPhase":[],"RecvPhase":["Result.Result Http.Error (Types.ApiResponse Types.Phase)"],"SubmitReady":[],"RecvPlayers":["Result.Result Http.Error (Types.ApiResponse Types.Players)"],"PersonalityInput":["Basics.Int","Basics.Int"],"PersonInputAge":["String.String"],"PersonSelectGender":["Maybe.Maybe String.String"],"PersonGenderDropdownMsg":["Dropdown.Msg String.String"],"PersonSelectNationality":["Maybe.Maybe String.String"],"PersonNationalityDropdownMsg":["Dropdown.Msg String.String"],"SubmitPerson":[],"RecvPersons":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityPre":[],"RecvPersonalitiesPre":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityAfter":[],"RecvPersonalitiesAfter":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"ExperienceClickPresenceInput":["Basics.Int"],"ExperienceClickConfidenceInput":["Basics.Int"],"ExperienceAbsenceFrequencyInput":["Basics.Int"],"ExperienceAbsenceStrengthInput":["Basics.Int"],"SubmitExperience":["Types.TrialClick"],"RecvExperiences":["Result.Result Http.Error (Types.ApiResponse Types.QAfterTrial)"],"PartnerTraitsInput":["Types.Trait","Basics.Float"],"SubmitPartnerTraits":[],"RecvPartnerTraits":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"StrategySelfInput":["String.String"],"StrategyOtherInput":["String.String"],"StrategyCommentInput":["String.String"],"SubmitStrategy":[],"RecvStrategies":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"]}},"Types.ApiResponse":{"args":["a"],"tags":{"BadStatus":["Basics.Int","Feedback.Feedback"],"GoodStatus":["a"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Json.Decode.Error":{"args":[],"tags":{"Field":["String.String","Json.Decode.Error"],"Index":["Basics.Int","Json.Decode.Error"],"OneOf":["List.List Json.Decode.Error"],"Failure":["String.String","Json.Decode.Value"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dropdown.Msg":{"args":["item"],"tags":{"OnDomFocus":["Result.Result Browser.Dom.Error ()"],"OnBlur":[],"OnClickPrompt":[],"OnSelect":["item"],"OnFilterTyped":["String.String"],"OnKeyDown":["Dropdown.Key"],"OnClickOutside":[]}},"Types.Phase":{"args":[],"tags":{"PreExperiment":["Types.QPreExperiment","Types.SpaceConfig","Types.PersonalityConfig"],"PreFirstResting":[],"Resting":["Types.Duration"],"PreTrials":[],"Trial":["Types.Duration","Types.SpaceConfig"],"AfterResting":[],"AfterTrial":["Maybe.Maybe Types.Training","Types.NextPhase","Types.TrialClicks","Types.QAfterTrial"],"AfterExperiment":["Types.QAfterExperiment","Types.PersonalityConfig"],"End":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Types.Slot":{"args":[],"tags":{"Experimenter":[],"Participant":["Types.P"]}},"Types.SocketMsg":{"args":[],"tags":{"SocketMsgError":["String.String"],"SocketMsgPhase":["Types.Phase"],"SocketMsgMeta":["Types.Meta"],"SocketMsgPlayers":["Types.Players"]}},"String.String":{"args":[],"tags":{"String":[]}},"Types.Trait":{"args":[],"tags":{"Extraversion":[],"Neuroticism":[],"Openness":[],"Agreeableness":[],"Conscientiousness":[]}},"I18Next.Translations":{"args":[],"tags":{"Translations":["Dict.Dict String.String String.String"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Feedback.Feedback":{"args":[],"tags":{"Feedback":["{ known : Dict.Dict String.String Feedback.Item, unknown : String.String }"]}},"Dropdown.Key":{"args":[],"tags":{"ArrowDown":[],"ArrowUp":[],"Enter":[],"Esc":[]}},"List.List":{"args":["a"],"tags":{}},"Types.NextPhase":{"args":[],"tags":{"TrialPhase":["Maybe.Maybe Types.Training"],"RestingPhase":[],"AfterExperimentPhase":[]}},"Types.P":{"args":[],"tags":{"P0":[],"P1":[]}},"Types.Training":{"args":[],"tags":{"Visible":[],"Hidden":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Feedback.Item":{"args":[],"tags":{"Error":["String.String"],"Success":["String.String"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));

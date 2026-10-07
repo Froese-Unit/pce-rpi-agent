@@ -447,6 +447,7 @@
             "current-phase": "XXXCurrent phase",
             "start-next-phase": "XXXStart next phase",
             "duration": "XXXDuration: {{duration}} seconds",
+            "agent-condition": "XXXAgent condition: {{condition}}",
             "pre-experiment": {
                 "title": "XXXQuestionnaires and setup",
                 "instructions": "XXXParticipants should fill the questionnaire while the setup is being finished. Once all is ready and the resting phase can start, move to next phase.",

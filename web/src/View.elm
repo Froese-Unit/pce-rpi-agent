@@ -311,6 +311,22 @@ connectedExperimenterView model phase =
                     [ subTitle (t model.translations "connected.experimenter.current-phase")
                     , titleStyled [ ( [ El.centerX ], titleText ) ]
                     , El.text (tr model.translations Curly "connected.experimenter.duration" [ ( "duration", String.fromInt duration ) ])
+
+                    -- AGENT 20261007: which agent condition this trial is
+                    -- running. EXPERIMENTER VIEW ONLY -- deliberately not in
+                    -- connectedParticipantView, where it would tell the
+                    -- participant the answer.
+                    , case config.agentCondition of
+                        Just condition ->
+                            El.text
+                                (tr model.translations
+                                    Curly
+                                    "connected.experimenter.agent-condition"
+                                    [ ( "condition", condition ) ]
+                                )
+
+                        Nothing ->
+                            El.none
                     , experimenterLegendView model
                     ]
                 , El.el [ El.width <| El.px 600 ] <| El.html <| spaceView config model.players Experimenter 1

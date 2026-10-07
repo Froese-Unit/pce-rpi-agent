@@ -166,7 +166,7 @@ config : D.Decoder SpaceConfig
 config =
     -- AGENT 20261005: map8 is the largest map, so the trial counter fields are
     -- applied in a second step. They are missing or null outside main trials.
-    D.map3 (\partial trialNumber numTrials -> partial trialNumber numTrials)
+    D.map4 (\partial trialNumber numTrials agentCondition -> partial trialNumber numTrials agentCondition)
         (D.map8 SpaceConfig
             (D.field "env_width" D.float)
             (D.field "avatar_width" D.float)
@@ -179,6 +179,7 @@ config =
         )
         (D.maybe (D.field "trial_number" D.int))
         (D.maybe (D.field "num_trials" D.int))
+        (D.maybe (D.field "agent_condition" D.string))
 
 
 pProps : D.Decoder a -> D.Decoder (PProps a)
