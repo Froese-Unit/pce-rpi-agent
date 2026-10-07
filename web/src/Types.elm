@@ -220,6 +220,7 @@ type alias SpaceConfig =
     , training : Maybe Training
     , trialNumber : Maybe Int
     , numTrials : Maybe Int
+    , agentCondition : Maybe String
     }
 
 

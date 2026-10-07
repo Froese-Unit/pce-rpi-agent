@@ -364,6 +364,10 @@ class Trial(Phase):
         # trials pass no `condition`, so they fall back to whatever
         # st.AGENT_CONDITION already is; see start_tasks() below).
         self.condition = condition
+        # AGENT 20261007: whatever condition actually ran. Set properly in
+        # start_tasks(); defaulted here so event_data() can read it before the
+        # trial has started (the experimenter screen shows it).
+        self._agent_condition_used = condition
         super().__init__(*args, **kwargs)
 
     def event_data(self):
@@ -385,6 +389,10 @@ class Trial(Phase):
                 "training": self.training,
                 "trial_number": self.trial_number,
                 "num_trials": self.num_trials,
+                # AGENT 20261007: shown on the EXPERIMENTER screen only (see
+                # View.elm connectedExperimenterView) -- the participant must
+                # not see which condition they are in.
+                "agent_condition": self._agent_condition_used,
             },
         }
 
