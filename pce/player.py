@@ -415,6 +415,14 @@ class Player:
                 self._replay_pool = list(st.AGENT_REPLAY_CONTACT_POOL)
                 shuffle(self._replay_pool)
             replay_csv = self._replay_pool.pop()
+            # AGENT 20261007: log WHICH recording this trial drew. Until now the
+            # filename was used to open the file and then discarded -- engine.log
+            # printed the pool, never the draw -- so a non_contingent trial's c_t
+            # could not be traced back to its 2023 source and the condition was
+            # not reproducible (found in the 20261005 pilot QC). This line comes
+            # immediately after phase.py's "Trial: agent condition = ...
+            # (trial_index=N)", so the pairing is unambiguous in the log.
+            logger.info("AGENT: non_contingent replay draw = %s", replay_csv)
             df = pd.read_csv(replay_csv)
             contact_col = f"motor_{st.AGENT_PLAYER_INDEX}_vibrate_software"
             self.replay_contact = df[contact_col].tolist()
