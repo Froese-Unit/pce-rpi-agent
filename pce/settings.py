@@ -87,10 +87,14 @@ TRIAL_ENDS_ON_CLICK = True
 # remember that doing so disables click-to-end on the TUI.
 TRIAL_END_MIN_PRESS_SECS = 0.0
 
-# Seconds to keep running after the click is registered, before ending. 0 =
-# end immediately (the chosen default). Set to e.g. 2.0 to keep a short
-# post-decision window; nothing else needs changing.
-TRIAL_END_POST_CLICK_SECS = 0.0
+# Seconds to keep running after the click is registered, before ending.
+# 0.5 s (20261008): ending dead on the press leaves no post-decision data at
+# all, so every trial's last sample IS the decision and there is nothing to
+# check it against -- no way to see what the agent did next, and no margin if
+# the press timestamp is off by a sample. Half a second is enough to be
+# analysable without being long enough to feel like the trial continues.
+# The cap still applies, so this can never extend a trial past its maximum.
+TRIAL_END_POST_CLICK_SECS = 0.5
 LOGGING_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 
 # INPUT/OUPUT SETTINGS
