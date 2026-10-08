@@ -7,3 +7,6 @@ Pipfile.lock
 __pycache__/
 *.pyc
 .DS_Store
+
+# JetBrains IDE project files (PyCharm). Local editor state, not project content.
+.idea/
