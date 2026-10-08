@@ -88,13 +88,13 @@ TRIAL_ENDS_ON_CLICK = True
 TRIAL_END_MIN_PRESS_SECS = 0.0
 
 # Seconds to keep running after the click is registered, before ending.
-# 0.9 s (20261008): ending dead on the press leaves no post-decision data at
+# 1 s (20261008): ending dead on the press leaves no post-decision data at
 # all, so every trial's last sample IS the decision and there is nothing to
 # check it against -- no way to see what the agent did next, and no margin if
 # the press timestamp is off by a sample. Half a second is enough to be
 # analysable without being long enough to feel like the trial continues.
 # The cap still applies, so this can never extend a trial past its maximum.
-TRIAL_END_POST_CLICK_SECS = 0.9
+TRIAL_END_POST_CLICK_SECS = 1.0
 LOGGING_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 
 # INPUT/OUPUT SETTINGS
