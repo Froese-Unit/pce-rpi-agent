@@ -348,6 +348,45 @@ class PreTrials(Phase):
         return all([p.ready for p in humans(self.players)])
 
 
+class Break(Phase):
+    """PSYCHOPHYSICS 20261008: a self-paced rest between blocks of main trials.
+
+    Participants sit through 36 trials here, so the blocks in
+    GLOBAL["NUM_TRIALS"] now mean something again: main.py puts one of these
+    between consecutive blocks. Before this they meant nothing -- the Resting
+    phases that used to separate them were dropped on 20260813 (no EEG), which
+    left [12, 12, 12] building exactly the same session as [36].
+
+    Self-paced, like PreTrials: the participant long-presses to carry on, so a
+    break is as long as they want it to be.
+    """
+
+    def __init__(self, *args, block=None, num_blocks=None, **kwargs):
+        self.block = block            # 1-based: the block just finished
+        self.num_blocks = num_blocks
+        super().__init__(*args, **kwargs)
+
+    def event_data(self):
+        return {
+            "phase": camel_to_snake(type(self).__name__),
+            "block": self.block,
+            "num_blocks": self.num_blocks,
+        }
+
+    def start_tasks(self):
+        pass
+
+    def cleanup_tasks(self):
+        pass
+
+    def can_become_ready(self, player):
+        return True
+
+    @property
+    def done(self):
+        return all([p.ready for p in humans(self.players)])
+
+
 class Trial(Phase):
     def __init__(self, *args, training=None, condition=None, trial_number=None,
                  num_trials=None, **kwargs):

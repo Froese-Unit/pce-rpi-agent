@@ -172,6 +172,7 @@ type P
 type NextPhase
     = TrialPhase (Maybe Training)
     | RestingPhase
+    | BreakPhase
     | AfterExperimentPhase
 
 
@@ -189,6 +190,8 @@ type Phase
     | PreFirstResting
     | Resting Duration
     | PreTrials
+      -- PSYCHOPHYSICS 20261008: block just finished, total blocks
+    | Break Int Int
     | Trial Duration SpaceConfig
     | AfterResting
     | AfterTrial (Maybe Training) NextPhase TrialClicks QAfterTrial

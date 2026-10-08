@@ -242,15 +242,31 @@ def main():
     main_trial_block = []
     _conditions_iter = iter(agent_condition_sequence)
     n_main_total = sum(st.GLOBAL["NUM_TRIALS"])
-    for ntrials in st.GLOBAL["NUM_TRIALS"]:
+    n_blocks = len(st.GLOBAL["NUM_TRIALS"])
+    # PSYCHOPHYSICS 20261008: count trials explicitly instead of deriving the
+    # number from len(main_trial_block) // 2 -- that arithmetic assumed the
+    # list held exactly Trial/AfterTrial pairs, and the Break phases appended
+    # below would have silently shifted every later trial's number.
+    trial_number = 0
+    for block_index, ntrials in enumerate(st.GLOBAL["NUM_TRIALS"], start=1):
         for _ in range(ntrials):
+            trial_number += 1
             main_trial_block.append((phase.Trial, {
                 "condition": next(_conditions_iter),
                 # AGENT 20261005: for the experimenter screen's trial counter
-                "trial_number": len(main_trial_block) // 2 + 1,
+                "trial_number": trial_number,
                 "num_trials": n_main_total,
             }))
             main_trial_block.append((phase.AfterTrial, {}))
+
+        # PSYCHOPHYSICS 20261008: a self-paced break BETWEEN blocks -- so with
+        # NUM_TRIALS = [12, 12, 12] there are two, after trials 12 and 24, and
+        # none before the end of the experiment.
+        if block_index < n_blocks:
+            main_trial_block.append((phase.Break, {
+                "block": block_index,
+                "num_blocks": n_blocks,
+            }))
 
     # AGENT 20261003: training trials, each with its own condition (see above).
     # Built with a loop, not `[...] * n`, for the same shared-dict reason as the

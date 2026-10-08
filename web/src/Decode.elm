@@ -111,6 +111,11 @@ phaseHelp s =
         "pre_trials" ->
             D.succeed PreTrials
 
+        "break" ->
+            D.map2 Break
+                (D.field "block" D.int)
+                (D.field "num_blocks" D.int)
+
         "trial" ->
             D.map2 Trial
                 (D.field "duration" D.int)
@@ -204,6 +209,9 @@ nextPhaseHelp p =
 
         "resting" ->
             D.succeed RestingPhase
+
+        "break" ->
+            D.succeed BreakPhase
 
         "after_experiment" ->
             D.succeed AfterExperimentPhase

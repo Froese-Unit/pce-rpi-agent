@@ -285,6 +285,21 @@ connectedExperimenterView model phase =
                     ]
                 }
 
+        -- PSYCHOPHYSICS 20261008: self-paced break between blocks of main trials.
+        Break block numBlocks ->
+            experimenterReadinessView model
+                { currentPhase =
+                    tr model.translations
+                        Curly
+                        "connected.experimenter.break.title"
+                        [ ( "block", String.fromInt block ), ( "total", String.fromInt numBlocks ) ]
+                , explanation = [ El.text (t model.translations "connected.experimenter.break.instructions") ]
+                , startPhaseForm = model.startPhaseForm
+                , required =
+                    [ ( t model.translations "connected.ready-start", Utils.mapPProps .ready model.players )
+                    ]
+                }
+
         Trial duration config ->
             let
                 titleText =
@@ -561,6 +576,29 @@ connectedParticipantView p model phase =
                 (waitTrainingTrialText model)
             )
 
+        -- PSYCHOPHYSICS 20261008: self-paced break between blocks. The
+        -- participant rests as long as they like, then long-presses to carry
+        -- on, so nobody is hurried back into a trial.
+        Break block numBlocks ->
+            ( False
+            , participantQuestionnaireView
+                [ ( .ready (Utils.getPProp p model.players)
+                  , participantStartPhaseView model
+                        False
+                        [ title (t model.translations "connected.participant.break.title")
+                        , subTitle
+                            (tr model.translations
+                                Curly
+                                "connected.participant.break.progress"
+                                [ ( "block", String.fromInt block ), ( "total", String.fromInt numBlocks ) ]
+                            )
+                        , subTitle (t model.translations "connected.participant.break.instructions")
+                        ]
+                  )
+                ]
+                []
+            )
+
         Trial duration config ->
             case config.training of
                 Just Visible ->
@@ -638,6 +676,10 @@ connectedParticipantView p model phase =
                                 RestingPhase ->
                                     ( [ ( False, errorPhaseTransitionText ) ], [] )
 
+                                BreakPhase ->
+                                    -- a break only ever follows a MAIN trial
+                                    ( [ ( False, errorPhaseTransitionText ) ], [] )
+
                                 AfterExperimentPhase ->
                                     ( [ ( False, errorPhaseTransitionText ) ], [] )
 
@@ -676,6 +718,10 @@ connectedParticipantView p model phase =
                                 RestingPhase ->
                                     ( [ ( False, errorPhaseTransitionText ) ], [] )
 
+                                BreakPhase ->
+                                    -- a break only ever follows a MAIN trial
+                                    ( [ ( False, errorPhaseTransitionText ) ], [] )
+
                                 AfterExperimentPhase ->
                                     ( [ ( False, errorPhaseTransitionText ) ], [] )
 
@@ -688,6 +734,9 @@ connectedParticipantView p model phase =
                                     ( []
                                     , waitTrialText model
                                     )
+
+                                BreakPhase ->
+                                    ( [], [] )
 
                                 RestingPhase ->
                                     ( [ ( .ready (Utils.getPProp p model.players)

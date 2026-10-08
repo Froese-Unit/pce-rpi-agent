@@ -11494,6 +11494,10 @@ var $author$project$Types$AfterTrial = F4(
 	function (a, b, c, d) {
 		return {$: 'AfterTrial', a: a, b: b, c: c, d: d};
 	});
+var $author$project$Types$Break = F2(
+	function (a, b) {
+		return {$: 'Break', a: a, b: b};
+	});
 var $author$project$Types$End = {$: 'End'};
 var $author$project$Types$PreExperiment = F3(
 	function (a, b, c) {
@@ -11579,6 +11583,7 @@ var $author$project$Decode$config = A5(
 	$elm$json$Json$Decode$maybe(
 		A2($elm$json$Json$Decode$field, 'agent_condition', $elm$json$Json$Decode$string)));
 var $author$project$Types$AfterExperimentPhase = {$: 'AfterExperimentPhase'};
+var $author$project$Types$BreakPhase = {$: 'BreakPhase'};
 var $author$project$Types$RestingPhase = {$: 'RestingPhase'};
 var $author$project$Types$TrialPhase = function (a) {
 	return {$: 'TrialPhase', a: a};
@@ -11592,6 +11597,8 @@ var $author$project$Decode$nextPhaseHelp = function (p) {
 				A2($elm$json$Json$Decode$field, 'training', $author$project$Decode$nullableTraining));
 		case 'resting':
 			return $elm$json$Json$Decode$succeed($author$project$Types$RestingPhase);
+		case 'break':
+			return $elm$json$Json$Decode$succeed($author$project$Types$BreakPhase);
 		case 'after_experiment':
 			return $elm$json$Json$Decode$succeed($author$project$Types$AfterExperimentPhase);
 		default:
@@ -11668,6 +11675,12 @@ var $author$project$Decode$phaseHelp = function (s) {
 				A2($elm$json$Json$Decode$field, 'duration', $elm$json$Json$Decode$int));
 		case 'pre_trials':
 			return $elm$json$Json$Decode$succeed($author$project$Types$PreTrials);
+		case 'break':
+			return A3(
+				$elm$json$Json$Decode$map2,
+				$author$project$Types$Break,
+				A2($elm$json$Json$Decode$field, 'block', $elm$json$Json$Decode$int),
+				A2($elm$json$Json$Decode$field, 'num_blocks', $elm$json$Json$Decode$int));
 		case 'trial':
 			return A3(
 				$elm$json$Json$Decode$map2,
@@ -20741,6 +20754,8 @@ var $author$project$Utils$nextPhaseToString = F2(
 				}
 			case 'RestingPhase':
 				return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-resting');
+			case 'BreakPhase':
+				return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-break');
 			default:
 				return A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.after-trial.next-phase-after-experiment');
 		}
@@ -20927,6 +20942,45 @@ var $author$project$View$connectedExperimenterView = F2(
 							[
 								$mdgriffith$elm_ui$Element$text(
 								A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.pre-trials.instructions'))
+							]),
+						required: _List_fromArray(
+							[
+								_Utils_Tuple2(
+								A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.ready-start'),
+								A2(
+									$author$project$Utils$mapPProps,
+									function ($) {
+										return $.ready;
+									},
+									model.players))
+							]),
+						startPhaseForm: model.startPhaseForm
+					});
+			case 'Break':
+				var block = phase.a;
+				var numBlocks = phase.b;
+				return A2(
+					$author$project$View$experimenterReadinessView,
+					model,
+					{
+						currentPhase: A4(
+							$ChristophP$elm_i18next$I18Next$tr,
+							model.translations,
+							$ChristophP$elm_i18next$I18Next$Curly,
+							'connected.experimenter.break.title',
+							_List_fromArray(
+								[
+									_Utils_Tuple2(
+									'block',
+									$elm$core$String$fromInt(block)),
+									_Utils_Tuple2(
+									'total',
+									$elm$core$String$fromInt(numBlocks))
+								])),
+						explanation: _List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$text(
+								A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.experimenter.break.instructions'))
 							]),
 						required: _List_fromArray(
 							[
@@ -24778,6 +24832,48 @@ var $author$project$View$connectedParticipantView = F3(
 										])))
 							]),
 						$author$project$View$waitTrainingTrialText(model)));
+			case 'Break':
+				var block = phase.a;
+				var numBlocks = phase.b;
+				return _Utils_Tuple2(
+					false,
+					A2(
+						$author$project$View$participantQuestionnaireView,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								function ($) {
+									return $.ready;
+								}(
+									A2($author$project$Utils$getPProp, p, model.players)),
+								A3(
+									$author$project$View$participantStartPhaseView,
+									model,
+									false,
+									_List_fromArray(
+										[
+											$author$project$View$title(
+											A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.participant.break.title')),
+											$author$project$View$subTitle(
+											A4(
+												$ChristophP$elm_i18next$I18Next$tr,
+												model.translations,
+												$ChristophP$elm_i18next$I18Next$Curly,
+												'connected.participant.break.progress',
+												_List_fromArray(
+													[
+														_Utils_Tuple2(
+														'block',
+														$elm$core$String$fromInt(block)),
+														_Utils_Tuple2(
+														'total',
+														$elm$core$String$fromInt(numBlocks))
+													]))),
+											$author$project$View$subTitle(
+											A2($ChristophP$elm_i18next$I18Next$t, model.translations, 'connected.participant.break.instructions'))
+										])))
+							]),
+						_List_Nil));
 			case 'Trial':
 				var duration = phase.a;
 				var config = phase.b;
@@ -24942,6 +25038,13 @@ var $author$project$View$connectedParticipantView = F3(
 												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
 											]),
 										_List_Nil);
+								case 'BreakPhase':
+									return _Utils_Tuple2(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+											]),
+										_List_Nil);
 								default:
 									return _Utils_Tuple2(
 										_List_fromArray(
@@ -25006,6 +25109,13 @@ var $author$project$View$connectedParticipantView = F3(
 												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
 											]),
 										_List_Nil);
+								case 'BreakPhase':
+									return _Utils_Tuple2(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(false, $author$project$View$errorPhaseTransitionText)
+											]),
+										_List_Nil);
 								default:
 									return _Utils_Tuple2(
 										_List_fromArray(
@@ -25031,6 +25141,8 @@ var $author$project$View$connectedParticipantView = F3(
 										_List_Nil,
 										$author$project$View$waitTrialText(model));
 								}
+							case 'BreakPhase':
+								return _Utils_Tuple2(_List_Nil, _List_Nil);
 							case 'RestingPhase':
 								return _Utils_Tuple2(
 									_List_fromArray(
@@ -25746,4 +25858,4 @@ var $author$project$Main$main = $elm$browser$Browser$application(
 		}
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.2"},"types":{"message":"Types.Msg","aliases":{"Types.Meta":{"args":[],"type":"{ slots : Types.Slots, pids : Types.Pids, uuid : Types.Uuid, lang : String.String, trainingTrialHasQuestionnaires : Basics.Bool }"},"Types.PProps":{"args":["a"],"type":"{ p0 : a, p1 : a }"},"Types.Pids":{"args":[],"type":"Types.PProps (Maybe.Maybe String.String)"},"Types.Player":{"args":[],"type":"{ x : Basics.Float, button : Basics.Bool, ready : Basics.Bool, clicked : Basics.Bool }"},"Types.Players":{"args":[],"type":"Types.PProps Types.Player"},"Types.QAfterExperiment":{"args":[],"type":"{ partnerTraits : Types.PProps Basics.Bool, personalityAfter : Types.PProps Basics.Bool, strategy : Types.PProps Basics.Bool }"},"Types.QAfterTrial":{"args":[],"type":"{ experience : Types.PProps Basics.Bool }"},"Types.QPreExperiment":{"args":[],"type":"{ person : Types.PProps Basics.Bool, personalityPre : Types.PProps Basics.Bool }"},"Types.Slots":{"args":[],"type":"{ experimenter : Maybe.Maybe Types.Uuid, p0 : Maybe.Maybe Types.Uuid, p1 : Maybe.Maybe Types.Uuid }"},"Types.TrialClick":{"args":[],"type":"Basics.Bool"},"Types.Uuid":{"args":[],"type":"String.String"},"Types.Duration":{"args":[],"type":"Basics.Int"},"Types.PersonalityConfig":{"args":[],"type":"Maybe.Maybe Basics.Int"},"Types.SpaceConfig":{"args":[],"type":"{ envWidth : Basics.Float, avatarWidth : Basics.Float, staticWidth : Basics.Float, static0 : Basics.Float, static1 : Basics.Float, shadowDelta0 : Basics.Float, shadowDelta1 : Basics.Float, training : Maybe.Maybe Types.Training, trialNumber : Maybe.Maybe Basics.Int, numTrials : Maybe.Maybe Basics.Int, agentCondition : Maybe.Maybe String.String }"},"Types.TrialClicks":{"args":[],"type":"Types.PProps Types.TrialClick"},"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"}},"unions":{"Types.Msg":{"args":[],"tags":{"NoOp":[],"Errored":["String.String"],"RecvMeta":["Result.Result Http.Error Types.Meta"],"RecvTranslations":["Result.Result Http.Error I18Next.Translations"],"SocketState":["Result.Result String.String Basics.Bool"],"RecvSocketMsg":["Result.Result Json.Decode.Error Types.SocketMsg"],"SelectSlot":["Types.Slot"],"RecvSlots":["Result.Result Http.Error (Types.ApiResponse Types.Slots)"],"PidInput":["String.String"],"RecvPids":["Result.Result Http.Error (Types.ApiResponse Types.Pids)"],"SubmitPid":[],"SubmitStartPhase":[],"RecvPhase":["Result.Result Http.Error (Types.ApiResponse Types.Phase)"],"SubmitReady":[],"RecvPlayers":["Result.Result Http.Error (Types.ApiResponse Types.Players)"],"PersonalityInput":["Basics.Int","Basics.Int"],"PersonInputAge":["String.String"],"PersonSelectGender":["Maybe.Maybe String.String"],"PersonGenderDropdownMsg":["Dropdown.Msg String.String"],"PersonSelectNationality":["Maybe.Maybe String.String"],"PersonNationalityDropdownMsg":["Dropdown.Msg String.String"],"SubmitPerson":[],"RecvPersons":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityPre":[],"RecvPersonalitiesPre":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityAfter":[],"RecvPersonalitiesAfter":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"ExperienceClickPresenceInput":["Basics.Int"],"ExperienceClickConfidenceInput":["Basics.Int"],"ExperienceAbsenceFrequencyInput":["Basics.Int"],"ExperienceAbsenceStrengthInput":["Basics.Int"],"SubmitExperience":["Types.TrialClick"],"RecvExperiences":["Result.Result Http.Error (Types.ApiResponse Types.QAfterTrial)"],"PartnerTraitsInput":["Types.Trait","Basics.Float"],"SubmitPartnerTraits":[],"RecvPartnerTraits":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"StrategySelfInput":["String.String"],"StrategyOtherInput":["String.String"],"StrategyCommentInput":["String.String"],"SubmitStrategy":[],"RecvStrategies":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"]}},"Types.ApiResponse":{"args":["a"],"tags":{"BadStatus":["Basics.Int","Feedback.Feedback"],"GoodStatus":["a"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Json.Decode.Error":{"args":[],"tags":{"Field":["String.String","Json.Decode.Error"],"Index":["Basics.Int","Json.Decode.Error"],"OneOf":["List.List Json.Decode.Error"],"Failure":["String.String","Json.Decode.Value"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dropdown.Msg":{"args":["item"],"tags":{"OnDomFocus":["Result.Result Browser.Dom.Error ()"],"OnBlur":[],"OnClickPrompt":[],"OnSelect":["item"],"OnFilterTyped":["String.String"],"OnKeyDown":["Dropdown.Key"],"OnClickOutside":[]}},"Types.Phase":{"args":[],"tags":{"PreExperiment":["Types.QPreExperiment","Types.SpaceConfig","Types.PersonalityConfig"],"PreFirstResting":[],"Resting":["Types.Duration"],"PreTrials":[],"Trial":["Types.Duration","Types.SpaceConfig"],"AfterResting":[],"AfterTrial":["Maybe.Maybe Types.Training","Types.NextPhase","Types.TrialClicks","Types.QAfterTrial"],"AfterExperiment":["Types.QAfterExperiment","Types.PersonalityConfig"],"End":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Types.Slot":{"args":[],"tags":{"Experimenter":[],"Participant":["Types.P"]}},"Types.SocketMsg":{"args":[],"tags":{"SocketMsgError":["String.String"],"SocketMsgPhase":["Types.Phase"],"SocketMsgMeta":["Types.Meta"],"SocketMsgPlayers":["Types.Players"]}},"String.String":{"args":[],"tags":{"String":[]}},"Types.Trait":{"args":[],"tags":{"Extraversion":[],"Neuroticism":[],"Openness":[],"Agreeableness":[],"Conscientiousness":[]}},"I18Next.Translations":{"args":[],"tags":{"Translations":["Dict.Dict String.String String.String"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Feedback.Feedback":{"args":[],"tags":{"Feedback":["{ known : Dict.Dict String.String Feedback.Item, unknown : String.String }"]}},"Dropdown.Key":{"args":[],"tags":{"ArrowDown":[],"ArrowUp":[],"Enter":[],"Esc":[]}},"List.List":{"args":["a"],"tags":{}},"Types.NextPhase":{"args":[],"tags":{"TrialPhase":["Maybe.Maybe Types.Training"],"RestingPhase":[],"AfterExperimentPhase":[]}},"Types.P":{"args":[],"tags":{"P0":[],"P1":[]}},"Types.Training":{"args":[],"tags":{"Visible":[],"Hidden":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Feedback.Item":{"args":[],"tags":{"Error":["String.String"],"Success":["String.String"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.2"},"types":{"message":"Types.Msg","aliases":{"Types.Meta":{"args":[],"type":"{ slots : Types.Slots, pids : Types.Pids, uuid : Types.Uuid, lang : String.String, trainingTrialHasQuestionnaires : Basics.Bool }"},"Types.PProps":{"args":["a"],"type":"{ p0 : a, p1 : a }"},"Types.Pids":{"args":[],"type":"Types.PProps (Maybe.Maybe String.String)"},"Types.Player":{"args":[],"type":"{ x : Basics.Float, button : Basics.Bool, ready : Basics.Bool, clicked : Basics.Bool }"},"Types.Players":{"args":[],"type":"Types.PProps Types.Player"},"Types.QAfterExperiment":{"args":[],"type":"{ partnerTraits : Types.PProps Basics.Bool, personalityAfter : Types.PProps Basics.Bool, strategy : Types.PProps Basics.Bool }"},"Types.QAfterTrial":{"args":[],"type":"{ experience : Types.PProps Basics.Bool }"},"Types.QPreExperiment":{"args":[],"type":"{ person : Types.PProps Basics.Bool, personalityPre : Types.PProps Basics.Bool }"},"Types.Slots":{"args":[],"type":"{ experimenter : Maybe.Maybe Types.Uuid, p0 : Maybe.Maybe Types.Uuid, p1 : Maybe.Maybe Types.Uuid }"},"Types.TrialClick":{"args":[],"type":"Basics.Bool"},"Types.Uuid":{"args":[],"type":"String.String"},"Types.Duration":{"args":[],"type":"Basics.Int"},"Types.PersonalityConfig":{"args":[],"type":"Maybe.Maybe Basics.Int"},"Types.SpaceConfig":{"args":[],"type":"{ envWidth : Basics.Float, avatarWidth : Basics.Float, staticWidth : Basics.Float, static0 : Basics.Float, static1 : Basics.Float, shadowDelta0 : Basics.Float, shadowDelta1 : Basics.Float, training : Maybe.Maybe Types.Training, trialNumber : Maybe.Maybe Basics.Int, numTrials : Maybe.Maybe Basics.Int, agentCondition : Maybe.Maybe String.String }"},"Types.TrialClicks":{"args":[],"type":"Types.PProps Types.TrialClick"},"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"}},"unions":{"Types.Msg":{"args":[],"tags":{"NoOp":[],"Errored":["String.String"],"RecvMeta":["Result.Result Http.Error Types.Meta"],"RecvTranslations":["Result.Result Http.Error I18Next.Translations"],"SocketState":["Result.Result String.String Basics.Bool"],"RecvSocketMsg":["Result.Result Json.Decode.Error Types.SocketMsg"],"SelectSlot":["Types.Slot"],"RecvSlots":["Result.Result Http.Error (Types.ApiResponse Types.Slots)"],"PidInput":["String.String"],"RecvPids":["Result.Result Http.Error (Types.ApiResponse Types.Pids)"],"SubmitPid":[],"SubmitStartPhase":[],"RecvPhase":["Result.Result Http.Error (Types.ApiResponse Types.Phase)"],"SubmitReady":[],"RecvPlayers":["Result.Result Http.Error (Types.ApiResponse Types.Players)"],"PersonalityInput":["Basics.Int","Basics.Int"],"PersonInputAge":["String.String"],"PersonSelectGender":["Maybe.Maybe String.String"],"PersonGenderDropdownMsg":["Dropdown.Msg String.String"],"PersonSelectNationality":["Maybe.Maybe String.String"],"PersonNationalityDropdownMsg":["Dropdown.Msg String.String"],"SubmitPerson":[],"RecvPersons":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityPre":[],"RecvPersonalitiesPre":["Result.Result Http.Error (Types.ApiResponse Types.QPreExperiment)"],"SubmitPersonalityAfter":[],"RecvPersonalitiesAfter":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"ExperienceClickPresenceInput":["Basics.Int"],"ExperienceClickConfidenceInput":["Basics.Int"],"ExperienceAbsenceFrequencyInput":["Basics.Int"],"ExperienceAbsenceStrengthInput":["Basics.Int"],"SubmitExperience":["Types.TrialClick"],"RecvExperiences":["Result.Result Http.Error (Types.ApiResponse Types.QAfterTrial)"],"PartnerTraitsInput":["Types.Trait","Basics.Float"],"SubmitPartnerTraits":[],"RecvPartnerTraits":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"],"StrategySelfInput":["String.String"],"StrategyOtherInput":["String.String"],"StrategyCommentInput":["String.String"],"SubmitStrategy":[],"RecvStrategies":["Result.Result Http.Error (Types.ApiResponse Types.QAfterExperiment)"]}},"Types.ApiResponse":{"args":["a"],"tags":{"BadStatus":["Basics.Int","Feedback.Feedback"],"GoodStatus":["a"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Json.Decode.Error":{"args":[],"tags":{"Field":["String.String","Json.Decode.Error"],"Index":["Basics.Int","Json.Decode.Error"],"OneOf":["List.List Json.Decode.Error"],"Failure":["String.String","Json.Decode.Value"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dropdown.Msg":{"args":["item"],"tags":{"OnDomFocus":["Result.Result Browser.Dom.Error ()"],"OnBlur":[],"OnClickPrompt":[],"OnSelect":["item"],"OnFilterTyped":["String.String"],"OnKeyDown":["Dropdown.Key"],"OnClickOutside":[]}},"Types.Phase":{"args":[],"tags":{"PreExperiment":["Types.QPreExperiment","Types.SpaceConfig","Types.PersonalityConfig"],"PreFirstResting":[],"Resting":["Types.Duration"],"PreTrials":[],"Break":["Basics.Int","Basics.Int"],"Trial":["Types.Duration","Types.SpaceConfig"],"AfterResting":[],"AfterTrial":["Maybe.Maybe Types.Training","Types.NextPhase","Types.TrialClicks","Types.QAfterTrial"],"AfterExperiment":["Types.QAfterExperiment","Types.PersonalityConfig"],"End":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Types.Slot":{"args":[],"tags":{"Experimenter":[],"Participant":["Types.P"]}},"Types.SocketMsg":{"args":[],"tags":{"SocketMsgError":["String.String"],"SocketMsgPhase":["Types.Phase"],"SocketMsgMeta":["Types.Meta"],"SocketMsgPlayers":["Types.Players"]}},"String.String":{"args":[],"tags":{"String":[]}},"Types.Trait":{"args":[],"tags":{"Extraversion":[],"Neuroticism":[],"Openness":[],"Agreeableness":[],"Conscientiousness":[]}},"I18Next.Translations":{"args":[],"tags":{"Translations":["Dict.Dict String.String String.String"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Feedback.Feedback":{"args":[],"tags":{"Feedback":["{ known : Dict.Dict String.String Feedback.Item, unknown : String.String }"]}},"Dropdown.Key":{"args":[],"tags":{"ArrowDown":[],"ArrowUp":[],"Enter":[],"Esc":[]}},"List.List":{"args":["a"],"tags":{}},"Types.NextPhase":{"args":[],"tags":{"TrialPhase":["Maybe.Maybe Types.Training"],"RestingPhase":[],"BreakPhase":[],"AfterExperimentPhase":[]}},"Types.P":{"args":[],"tags":{"P0":[],"P1":[]}},"Types.Training":{"args":[],"tags":{"Visible":[],"Hidden":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Feedback.Item":{"args":[],"tags":{"Error":["String.String"],"Success":["String.String"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));

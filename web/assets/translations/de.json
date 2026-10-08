@@ -362,6 +362,11 @@
                 "title": "XXXResting phase is ongoing",
                 "instructions": "XXXPlease keep your eyes closed and your hands on the table."
             },
+            "break": {
+                "title": "XXXTake a break",
+                "progress": "XXXYou have finished block {{block}} of {{total}}.",
+                "instructions": "XXXRest for as long as you like. When you are ready to carry on, hold down your button."
+            },
             "pre-trials": {
                 "next-do-1": "Wir beginnen nun mit dem Peceptual Crossing Experiment, indem wir zunächst zwei Trainingsversuche durchführen.",
                 "nexd-do-1__todo": "TODO Get the number of training trials from pce/settings.py",
@@ -460,6 +465,10 @@
             "resting": {
                 "title": "XXXResting"
             },
+            "break": {
+                "title": "XXXBreak (after block {{block}} of {{total}})",
+                "instructions": "XXXThe participant is taking a break. They continue by holding their button when ready."
+            },
             "pre-trials": {
                 "title": "XXXPre-experiment instructions",
                 "instructions": "XXXWait for participants to read instructions and declare themselves ready"
@@ -478,6 +487,7 @@
                 "next-phase-trial-hidden": "XXXtest trial with hidden space",
                 "next-phase-trial": "XXXtrial",
                 "next-phase-resting": "XXXresting state",
+                "next-phase-break": "XXXbreak",
                 "next-phase-after-experiment": "XXXpost-experiment questionnaire phase",
                 "questionnaire-completed": "XXXExperience questionnaire completed"
             },

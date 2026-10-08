@@ -108,5 +108,8 @@ nextPhaseToString model nextPhase =
         RestingPhase ->
             t model.translations "connected.experimenter.after-trial.next-phase-resting"
 
+        BreakPhase ->
+            t model.translations "connected.experimenter.after-trial.next-phase-break"
+
         AfterExperimentPhase ->
             t model.translations "connected.experimenter.after-trial.next-phase-after-experiment"
