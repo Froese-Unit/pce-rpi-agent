@@ -32,10 +32,10 @@
             "your-avatar": "Ihr Avatar",
             "your-shadow": "Schatten Ihres Avatars",
             "your-static-object": "Ihr statisches Objekt",
-            "partners-avatar": "Avatar des Partners/der Partnerin",
-            "partners-shadow": "Schatten des Partner-Avatars",
-            "partners-static-object": "Statisches Objekt des Partners/der Partnerin",
-            "you-clicked": "Sie haben den Knopf betätigt; bitte betätigen Sie ihn nicht mehr während dieses Durchgangs! Vergessen Sie nicht, Ihrem Partner(Ihrer Partnerin zu helfen, Sie zu finden.",
+            "partners-avatar": "Avatar des Agenten",
+            "partners-shadow": "Schatten des Agenten",
+            "partners-static-object": "Statisches Objekt des Agenten",
+            "you-clicked": "Sie haben den Knopf betätigt. Nur Ihr erster Tastendruck zählt in diesem Durchgang.",
             "has-clicked": "Hat gedrückt."
         },
         "participant": {
@@ -390,7 +390,7 @@
                 "training-title": "Trainingsversuch läuft...",
                 "sub-title": "Erkunden Sie den Raum und probieren Sie Dinge aus!",
                 "please-eyes-closed": "XXXPlease keep your eyes closed.",
-                "instructions": "Finden Sie mit Hilfe des Controllers Ihren Partner/Ihre Partnerin und helfen Sie ihm/ihr, Sie zu finden.",
+                "instructions": "Durchsuchen Sie mit Hilfe des Controllers den Raum und finden Sie den Agenten.",
                 "real-title": "Versuch läuft..."
             },
             "after-trial": {
@@ -409,7 +409,7 @@
                 "click-presence-1": "Wie deutlich haben Sie unmittelbar vor dem Drücken des Knopfes die Präsenz Ihres Teamkollegen / Ihrer Teamkollegin erlebt?",
                 "click-presence-2": "Bitte wählen Sie aus:",
                 "click-confidence-1": "XXXHow confident are you now that you correctly identified the moment during which you were interacting with your partner?",
-                "click-confidence-2": "XXXPlease select a category to describe your confidence accurately.",
+                "click-confidence-2": "XXXPlease select the category that best describes your confidence.",
                 "no-confidence": "XXXNo confidence",
                 "low-confidence": "XXXLow confidence",
                 "medium-confidence": "XXXMedium confidence",

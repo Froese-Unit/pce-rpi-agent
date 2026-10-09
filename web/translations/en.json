@@ -32,10 +32,10 @@
             "your-avatar": "your avatar",
             "your-shadow": "your shadow",
             "your-static-object": "your static object",
-            "partners-avatar": "partner's avatar",
-            "partners-shadow": "partner's shadow",
-            "partners-static-object": "partner's static object",
-            "you-clicked": "You've pressed your button; no more presses in this trial! Remember to help your partner find you.",
+            "partners-avatar": "the agent's avatar",
+            "partners-shadow": "the agent's shadow",
+            "partners-static-object": "the agent's static object",
+            "you-clicked": "You've pressed your button. Only your first press counts in this trial.",
             "has-clicked": "Has clicked."
         },
         "participant": {
@@ -390,7 +390,7 @@
                 "training-title": "Training trial is ongoing",
                 "sub-title": "Explore the space and try things out!",
                 "please-eyes-closed": "Please keep your eyes closed.",
-                "instructions": "Using the controller, find your partner and help them find you.",
+                "instructions": "Using the controller, search the space and find the agent.",
                 "real-title": "Trial is ongoing"
             },
             "after-trial": {
@@ -407,9 +407,9 @@
                 "clear-experience": "Clear experience",
                 "title-button-pressed": "As you pressed the button during the trial, please tell us more",
                 "click-presence-1": "How clearly did you experience that you were interacting with your partner just before the time you pressed?",
-                "click-presence-2": "Please select a category to describe the experience of your partner.",
+                "click-presence-2": "Please select the category that best describes your experience.",
                 "click-confidence-1": "How confident are you now that you correctly identified the moment during which you were interacting with your partner?",
-                "click-confidence-2": "Please select a category to describe your confidence accurately.",
+                "click-confidence-2": "Please select the category that best describes your confidence.",
                 "no-confidence": "No confidence",
                 "low-confidence": "Low confidence",
                 "medium-confidence": "Medium confidence",
