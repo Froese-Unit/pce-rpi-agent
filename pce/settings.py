@@ -260,7 +260,21 @@ AGENT_RETURN_SPEED = 280  # units/second while heading back to x_last_contact --
 # allowed to hold again (AGENT_HOLD_COOLDOWN_SECS). "Cooldown" = a forced
 # waiting period after an action, before it's allowed to happen again. Both
 # match the real 2023 contact/gap rhythm (~0.25s / ~0.5s), not pilot data.
-AGENT_MAX_HOLD_SECS = 0.5       # ~2x the real median contact duration
+# 20261009 AH: 0.5 -> 1.0. The cap sat BELOW the human contact distribution:
+# in the 2023 recordings the median contact is 0.22 s but the 90th percentile
+# is 1.06 s, and 24.8% of all contacts run longer than 0.5 s. So the old cap
+# truncated the agent short of what people actually do. 1.0 s is the 90th
+# percentile, which keeps the cap's purpose (a participant cannot hold the
+# agent indefinitely -- see the camping problem, lab notebook 09-15) while no
+# longer cutting off the upper range of real contacts.
+#
+# Stated prediction, 20261009, before running: co-location WHILE ENGAGED
+# should rise above the 6.7% geometric chance level (40-unit contact window on
+# a 600-unit ring). It was 7.6% on 20261009-ann-pilot, i.e. at chance.
+# Expect a partial improvement only: the agent is in contact just 20.6% of the
+# trial, and the larger leak is the ~48% spent engaged-but-not-in-contact
+# returning to a stale x_last_contact.
+AGENT_MAX_HOLD_SECS = 1.0       # 90th percentile of real 2023 contact durations
 AGENT_HOLD_COOLDOWN_SECS = 0.5  # matches the real median gap duration
 
 # OLD (single fixed recording) -- superseded 20260816 by AGENT_REPLAY_CONTACT_POOL below.
